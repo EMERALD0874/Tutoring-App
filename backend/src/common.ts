@@ -34,3 +34,7 @@ export async function getConnection<T>(cb: (pg: PoolClient) => T): Promise<T> {
     client.release();
     return ret;
 }
+
+export const slots = (n: number): string => {
+    return Array(n).map((i) => `$${i+1}`).join(', ');
+}
