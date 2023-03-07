@@ -15,7 +15,9 @@ app.use('/api', apiRouter);
 apiRouter.get('/', (req: Request, res: Response) => {
     res.send('Hello world!');
 });
-
+app.get('/asdf', (req: Request, res: Response) => {
+    res.send('youve reached asdf, nobody is home right now');
+});
 app.listen(port, () => {
     console.log(`Listening on port ${port}`);
 });
