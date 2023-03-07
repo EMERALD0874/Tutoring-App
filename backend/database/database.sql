@@ -28,7 +28,7 @@ CREATE TABLE departments (
     name TEXT PRIMARY KEY
 );
 
-CREATE TABLE subject (
+CREATE TABLE subjects (
     name TEXT PRIMARY KEY,
     department TEXT REFERENCES departments(name)
 );
