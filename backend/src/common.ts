@@ -17,13 +17,20 @@ const pool = new Pool({
 // This facilitates the automatic creation and cleanup of connections
 // to the postgres db server. Supply the cb as a callback after the 
 // connection has been made.
-// 
-// Yes, this could have been an async function, but ofc garbage collected 
-// languages don't have a "drop" interface because the language never knows
-// when the object is no longer in use, so this semi-hack is used.
-export const getConnection = (cb: (pg: PoolClient) => void) => {
-    pool.connect().then((client) => {
-        cb(client);
-        client.release();
-    })
-};
+//
+// Example:
+// ```ts
+// getConnection().then((client: PoolClient) => {
+//     client.query("SELECT NOW();");
+// })
+// .then((ret) => {
+//     console.log(ret.rows);
+// })
+// ```
+async function getConnection<T>(cb: (pg: PoolClient) => T): Promise<T> {
+    var client = await pool.connect();
+    var ret: T;
+    ret = cb(client);
+    client.release();
+    return ret;
+}
