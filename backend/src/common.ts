@@ -20,7 +20,7 @@ const pool = new Pool({
 //
 // Example:
 // ```ts
-// getConnection().then((client: PoolClient) => {
+// getConnection((client: PoolClient) => {
 //     client.query("SELECT NOW();");
 // })
 // .then((ret) => {
