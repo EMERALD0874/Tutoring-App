@@ -27,7 +27,7 @@ const pool = new Pool({
 //     console.log(ret.rows);
 // })
 // ```
-async function getConnection<T>(cb: (pg: PoolClient) => T): Promise<T> {
+export async function getConnection<T>(cb: (pg: PoolClient) => T): Promise<T> {
     var client = await pool.connect();
     var ret: T;
     ret = cb(client);
