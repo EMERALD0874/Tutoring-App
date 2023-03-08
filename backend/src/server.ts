@@ -21,7 +21,7 @@ app.param('id', (req: Request, resp: Response, next: Function, id: string) => {
         return;
     }
     // oh joy blue and red functions
-    getConnection().then((db) => {
+    getConnection((db) => {
         db.query("SELECT * FROM user WHERE id = $1;", [id])
             .then((v) => {
                 if (v.rows.length > 0) {
