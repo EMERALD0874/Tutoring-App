@@ -14,7 +14,7 @@ apiRouter.use('/tutors', tutorsRouter)
 app.use('/api', apiRouter)
 
 // handler for userid
-app.param('id', (req: Request, resp: Response, next: Function, id: string) => {
+app.param('userid', (req: Request, resp: Response, next: Function, id: string) => {
     if (!uuid.validate(id)) {
         console.log(`PARAM :id; invalid uuid input: ${id}`);
         resp.status(400).end();
