@@ -2,18 +2,28 @@ import { QueryResult } from "pg";
 import { getConnection } from "../common";
 // import { getConnection, slots } from "../common";
 import { Department } from "./departments"
-export const selectDepartments = async (): Promise<Department> => {
-    const conn = await getConnection();
 
+export const selectDepartments = (): Department[] => {
     const sql = `
         SELECT
             name
         FROM
             departments
-    `;
+        `;
+    const conn = getConnection((db) =>
+    {
+        
 
-    const result: QueryResult<Department> = await conn.query(sql, []);
-    await conn.end();
-    
-    return Promise.resolve
+        db.query(sql, []).then((result) => {
+            
+        });
+    });
+}
+export const createDepartment = (dep: Department): Department => 
+{
+
+}
+export const deleteDepartment = (id: string): Department => 
+{
+
 }
