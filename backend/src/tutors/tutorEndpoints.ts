@@ -1,5 +1,7 @@
-import { Request, Response, Router } from 'express';
+import { request, Request, Response, Router } from 'express';
 import { getConnection } from '../common';
+import { TypedRequestBody } from '../types';
+import { TutorPATCHQuery } from './tutor';
 
 export const tutorsRouter = Router();
 
@@ -7,9 +9,9 @@ export const tutorsRouter = Router();
 tutorsRouter.route("/:userid")
     // GET /api/tutors/:userid
     // Returns an existing user if the tutor exists, along with avail times.
-    .get((req: Request, resp: Response) => {
-        getConnection((db) => {
-            db.query(`
+    .get(async (req: Request, resp: Response) => {
+        var query = await getConnection(async (db) => {
+            return db.query(`
             SELECT 
                 users.first_name AS first_name,
                 users.last_name AS last_name,
@@ -26,37 +28,59 @@ tutorsRouter.route("/:userid")
             JOIN
                 tutor_times ON tutors.id = tutor_times.tutor_id
             WHERE
-                users.id = $1;`, [req.params.userid])
-                .then((query) => {
-                    if (query.rows.length < 0) {
-                        resp.status(404).end();
-                    }
-                    else {
-                        resp.send(query.rows[0]).end();
-                    }
-                });
+                users.id = $1;`,
+                [req.params.userid]);
         });
+        if (query.rows.length < 0) {
+            resp.status(404).end();
+        }
+        else {
+            resp.send(query.rows[0]).end();
+        }
     })
-    // POST /api/tutors/:userid
+    // PATCH /api/tutors/:userid
     // QUERY PARAMS:
     // ttid: Tutor time id. Used as specifier.
     // when: ISO 8601 date, to update day_of AND start_time.
     // 
     // Updates the tutor appointments in the database
-    .post((req: Request, resp: Response) => {
-        getConnection((db) => {
-            if (req.query["ttid"] == null) {
-                resp.status(400).end();
-                return;
-            }
-            var ttid = req.query["ttid"] ?? "";
-            var date = new Date((req.query["when"] ?? "NOT A DATE").toString());
-            if (Number.isNaN(date.valueOf())) {
-                resp.status(400).end();
-                return;
-            }
+    .patch(async (req: TypedRequestBody<TutorPATCHQuery>, resp: Response) => {
+        const query = req.body;
 
-            db.query(`
+        // date parse
+        // const date: Date =
+        //     new Date((
+        //         req.body.when ??
+        //         "NOT A DATE"
+        //     ));
+        // if (Number.isNaN(date.valueOf())) {
+        //     resp.status(400).end();
+        //     return;
+        // }
+
+        const date: Date;
+        if (query.when === undefined) {
+            const query = await getConnection(async (db) => {
+                return db.query(`
+                SELECT
+                    day_of,
+                    start_time
+                FROM
+                    tutor_times
+                JOIN 
+                    tutors ON users.id = tutors.id
+                JOIN
+                    tutor_times ON tutors.id = tutor_times.tutor_id
+                WHERE
+                    users.id = $1;`,
+                [req.params.userid]);
+            });
+
+        }
+
+        var result = await getConnection(async (db) => {
+            // TODO: incoreect query. join the tables
+            return db.query(`
             UPDATE 
                 tutor_times
             SET
@@ -69,16 +93,14 @@ tutorsRouter.route("/:userid")
                     date.toISOString().split('T')[0],
                     date.toISOString().split('T')[1],
                     req.params.userid,
-                    ttid
+                    query.ttid
                 ])
-                .then((result) => {
-                    if (result.rowCount == 0) {
-                        resp.status(404).end();
-                    } else {
-                        resp.status(200).end();
-                    }
-                });
         });
+        if (result.rowCount == 0) {
+            resp.status(404).end();
+        } else {
+            resp.status(200).end();
+        }
     })
-    .put((req: Request, resp: Response) => { })
-    .delete((req: Request, resp: Response) => { });
+    .put(async (req: Request, resp: Response) => { })
+    .delete(async (req: Request, resp: Response) => { });

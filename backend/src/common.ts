@@ -20,8 +20,8 @@ const pool = new Pool({
 //
 // Example:
 // ```ts
-// getConnection((client: PoolClient) => {
-//     client.query("SELECT NOW();");
+// getConnection(async (client: PoolClient) => {
+//     return client.query("SELECT NOW();");
 // })
 // .then((ret) => {
 //     console.log(ret.rows);
