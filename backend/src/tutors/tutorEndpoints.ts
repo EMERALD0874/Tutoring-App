@@ -1,7 +1,8 @@
 import { request, Request, Response, Router } from 'express';
 import { getConnection } from '../common';
-import { TypedRequestBody } from '../types';
-import { TutorPATCHQuery } from './tutor';
+import { TypedRequestBody, TypedResponse } from '../types';
+import { TutorDELETEQuery, TutorPATCHQuery, TutorPOSTQuery, TutorPOSTResponse } from './tutor';
+import { v4 } from 'uuid';
 
 export const tutorsRouter = Router();
 
@@ -41,45 +42,24 @@ tutorsRouter.route("/:userid")
     // PATCH /api/tutors/:userid
     // QUERY PARAMS:
     // ttid: Tutor time id. Used as specifier.
-    // when: ISO 8601 date, to update day_of AND start_time.
+    // when: Date, updates the internal date.
+    // 
     // 
     // Updates the tutor appointments in the database
     .patch(async (req: TypedRequestBody<TutorPATCHQuery>, resp: Response) => {
-        const query = req.body;
 
         // date parse
-        // const date: Date =
-        //     new Date((
-        //         req.body.when ??
-        //         "NOT A DATE"
-        //     ));
-        // if (Number.isNaN(date.valueOf())) {
-        //     resp.status(400).end();
-        //     return;
-        // }
-
-        const date: Date;
-        if (query.when === undefined) {
-            const query = await getConnection(async (db) => {
-                return db.query(`
-                SELECT
-                    day_of,
-                    start_time
-                FROM
-                    tutor_times
-                JOIN 
-                    tutors ON users.id = tutors.id
-                JOIN
-                    tutor_times ON tutors.id = tutor_times.tutor_id
-                WHERE
-                    users.id = $1;`,
-                [req.params.userid]);
-            });
-
+        const date: Date =
+            new Date((
+                req.body.when ??
+                "NOT A DATE"
+            ));
+        if (Number.isNaN(date.valueOf())) {
+            resp.status(400).end();
+            return;
         }
 
         var result = await getConnection(async (db) => {
-            // TODO: incoreect query. join the tables
             return db.query(`
             UPDATE 
                 tutor_times
@@ -93,7 +73,7 @@ tutorsRouter.route("/:userid")
                     date.toISOString().split('T')[0],
                     date.toISOString().split('T')[1],
                     req.params.userid,
-                    query.ttid
+                    req.body.ttid
                 ])
         });
         if (result.rowCount == 0) {
@@ -102,5 +82,71 @@ tutorsRouter.route("/:userid")
             resp.status(200).end();
         }
     })
-    .put(async (req: Request, resp: Response) => { })
-    .delete(async (req: Request, resp: Response) => { });
+    // POST /api/tutors/:userid
+    // QUERY PARAMS:
+    // id: id of the times
+    //
+    // Adds tutor time to database 
+    .post(async (req: TypedRequestBody<TutorPOSTQuery>, resp: TypedResponse<TutorPOSTResponse>) => {
+        const result: string | undefined = await getConnection(async (db) => {
+            const id = v4();
+            const good = await db.query(`
+            INSERT INTO
+                tutor_times
+                (
+                    tutor_id,
+                    id,
+                    day_of, 
+                    start_time
+                )
+            VALUES
+                (
+                    $1,
+                    $2,
+                    $3,
+                    $4
+                );`,
+                [
+                    req.params.userid,
+                    id,
+                    req.body.when.toISOString().split('T')[0],
+                    req.body.when.toISOString().split('T')[1],
+                ]);
+            if (good.rowCount > 0) {
+                return id;
+            } else { return undefined; }
+        });
+
+        if (result === undefined) {
+            resp.status(400).end()
+        }
+        else {
+            resp.json({ id: result }).end()
+        }
+    })
+    // DELETE /api/tutors/:userid
+    // QUERY PARAMS:
+    // id: id of the time slot
+    //
+    // Deletes tutor time from database
+    .delete(async (req: TypedRequestBody<TutorDELETEQuery>, resp: Response) => {
+        const result = await getConnection(async (db) => {
+            return await db.query(`
+                DELETE FROM 
+                    tutor_times
+                WHERE
+                    id = $1,
+                    tutor_id = $2;`,
+                [
+                    req.body.id,
+                    req.params.userid
+                ]);
+        });
+
+        if (result.rowCount > 0) {
+            resp.status(200).end()
+        }
+        else {
+            resp.status(404).end()
+        }
+    });
