@@ -1,4 +1,4 @@
-import { request, Request, Response, Router } from 'express';
+import { NextFunction, request, Request, Response, Router } from 'express';
 import { getConnection } from '../common';
 import { TypedRequestBody, TypedResponse } from '../types';
 import { TutorDELETEQuery, TutorPATCHQuery, TutorPOSTQuery, TutorPOSTResponse } from './tutor';
@@ -10,7 +10,7 @@ export const tutorsRouter = Router();
 tutorsRouter.route("/:userid")
     // GET /api/tutors/:userid
     // Returns an existing user if the tutor exists, along with avail times.
-    .get(async (req: Request, resp: Response) => {
+    .get(async (req: Request, resp: Response, _: NextFunction) => {
         var query = await getConnection(async (db) => {
             return db.query(`
             SELECT 
@@ -23,7 +23,7 @@ tutorsRouter.route("/:userid")
                 tutor_times.day_of AS day_of,
                 tutor_times.start_time AS start_time
             FROM 
-                users, tutor_times
+                users
             JOIN 
                 tutors ON users.id = tutors.id
             JOIN
@@ -32,11 +32,11 @@ tutorsRouter.route("/:userid")
                 users.id = $1;`,
                 [req.params.userid]);
         });
-        if (query.rows.length < 0) {
+        if (query.rows.length === 0) {
             resp.status(404).end();
         }
         else {
-            resp.send(query.rows[0]).end();
+            resp.json(query.rows[0]).end();
         }
     })
     // PATCH /api/tutors/:userid
@@ -46,7 +46,7 @@ tutorsRouter.route("/:userid")
     // 
     // 
     // Updates the tutor appointments in the database
-    .patch(async (req: TypedRequestBody<TutorPATCHQuery>, resp: Response) => {
+    .patch(async (req: TypedRequestBody<TutorPATCHQuery>, resp: Response, _: NextFunction) => {
 
         // date parse
         const date: Date =
@@ -87,7 +87,7 @@ tutorsRouter.route("/:userid")
     // id: id of the times
     //
     // Adds tutor time to database 
-    .post(async (req: TypedRequestBody<TutorPOSTQuery>, resp: TypedResponse<TutorPOSTResponse>) => {
+    .post(async (req: TypedRequestBody<TutorPOSTQuery>, resp: TypedResponse<TutorPOSTResponse>, _: NextFunction) => {
         const result: string | undefined = await getConnection(async (db) => {
             const id = v4();
             const good = await db.query(`
@@ -129,7 +129,7 @@ tutorsRouter.route("/:userid")
     // id: id of the time slot
     //
     // Deletes tutor time from database
-    .delete(async (req: TypedRequestBody<TutorDELETEQuery>, resp: Response) => {
+    .delete(async (req: TypedRequestBody<TutorDELETEQuery>, resp: Response, _: NextFunction) => {
         const result = await getConnection(async (db) => {
             return await db.query(`
                 DELETE FROM 

@@ -1,6 +1,4 @@
 import express, { Request, Response, Router } from 'express';
-import uuid from "uuid";
-import { getConnection } from './common';
 import { tutorsRouter } from './tutors/tutorEndpoints';
 import { usersRouter } from './users/userEndpoints';
 import { json as jsonParser } from 'body-parser';
