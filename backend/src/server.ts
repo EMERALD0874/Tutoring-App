@@ -7,7 +7,8 @@ import { json as jsonParser } from 'body-parser';
 
 export const app = express();
 app.use(jsonParser());
-const port = 3000;
+const port = +(process.env.SERVICE_PORT || 3000);
+const host = process.env.SERVICE_HOST || 'localhost';
 
 const apiRouter = Router();
 apiRouter.use('/tutors', tutorsRouter);
