@@ -8,6 +8,7 @@ export const selectUsers = async (): Promise<User[]> => {
             id,
             first_name,
             last_name,
+            username,
             about,
             email,
             birthdate
@@ -30,6 +31,7 @@ export const selectUserByID = async (id: string): Promise<User | undefined> => {
                 id,
                 first_name,
                 last_name,
+                username,
                 about,
                 email,
                 birthdate
@@ -50,21 +52,50 @@ export const selectUserByID = async (id: string): Promise<User | undefined> => {
     return result.rows[0];
 };
 
+export const getUserByUsername = async (username: string): Promise<User | undefined> => {
+    const sql = `
+        SELECT
+            id,
+            first_name,
+            last_name,
+            username,
+            about,
+            email,
+            birthdate
+        FROM 
+            users
+        WHERE
+            username = $1;
+    `;
+
+    const result: QueryResult<User> = await getConnection((conn) => {
+        return conn.query(sql, [username])
+    });
+
+    if (result.rowCount === 0) {
+        return undefined;
+    }
+
+    return result.rows[0];
+};
+
 export const insertUser = async (user: User): Promise<User | undefined> => {
     const sql = `
         INSERT INTO users (
             id,
             first_name,
             last_name,
+            username,
             about,
             email,
             birthdate
             )
-        VALUES (${slots(6)})
+        VALUES (${slots(7)})
         RETURNING 
             id,
             first_name,
             last_name,
+            username,
             about,
             email,
             birthdate;
@@ -75,6 +106,7 @@ export const insertUser = async (user: User): Promise<User | undefined> => {
             user.id,
             user.first_name,
             user.last_name,
+            user.username,
             user.about,
             user.email,
             user.birthdate,

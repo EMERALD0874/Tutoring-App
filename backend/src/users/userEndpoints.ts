@@ -8,8 +8,9 @@ import {
     deleteUser,
     updateUser,
 } from './userDIs';
-import { User, CreateUser, UpdateUser } from './user';
+import { User, UpdateUser } from './user';
 import { TypedRequestBody, TypedResponse, Alert } from '../types';
+import { RegisterUser } from '../auth/auth';
 
 export const usersRouter = Router();
 
@@ -25,7 +26,7 @@ usersRouter
     })
     .post(
         async (
-            req: TypedRequestBody<CreateUser>,
+            req: TypedRequestBody<RegisterUser>,
             res: TypedResponse<User | Alert>,
             next: NextFunction
         ) => {
@@ -82,6 +83,7 @@ usersRouter
                 id: genUuid(),
                 first_name: req.body.first_name,
                 last_name: req.body.last_name,
+                username: req.body.username,
                 email: req.body.email,
                 about: req.body.about,
                 birthdate: req.body.birthdate,
