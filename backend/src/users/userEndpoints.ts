@@ -133,14 +133,12 @@ usersRouter
 
             if (deletedId == null) {
                 res.status(404);
-            }
-            else {
+            } else {
                 res.status(200);
             }
 
             res.json({ id: deletedId });
         } catch (error) {
-            console.log(error)
             res.status(500);
             res.json({ error: 'Internal Server Error' });
         }

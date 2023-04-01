@@ -15,9 +15,11 @@ export const selectUsers = async (): Promise<User[]> => {
             users;
     `;
 
-    const result: QueryResult<User> = await getConnection<QueryResult>((conn) => {
-        return conn.query(sql, [])
-    });
+    const result: QueryResult<User> = await getConnection<QueryResult>(
+        (conn) => {
+            return conn.query(sql, []);
+        }
+    );
 
     return result.rows;
 };
@@ -38,7 +40,7 @@ export const selectUserByID = async (id: string): Promise<User | undefined> => {
         `;
 
     const result: QueryResult<User> = await getConnection((conn) => {
-        return conn.query(sql, [id])
+        return conn.query(sql, [id]);
     });
 
     if (result.rowCount === 0) {
@@ -177,7 +179,7 @@ export const updateUser = async (
     `;
 
     const result: QueryResult<User> = await getConnection((conn) => {
-        return conn.query(sql, updatedValues)
+        return conn.query(sql, updatedValues);
     });
 
     if (result.rowCount === 0) {

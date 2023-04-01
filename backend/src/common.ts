@@ -1,4 +1,5 @@
 import { Pool, PoolClient } from 'pg';
+import { validate, validate as validateUuid } from 'uuid';
 
 // Environment Variables
 export const port: number = +(process.env.PROJECT_PORT || 5000);
@@ -17,12 +18,14 @@ const pool = new Pool({
 // This facilitates the automatic creation and cleanup of connections
 // to the postgres db server. Supply the cb as a callback after the
 // connection has been made.
-// 
-// Yes, this could have been an async function, but ofc garbage collected 
+//
+// Yes, this could have been an async function, but ofc garbage collected
 // languages don't have a "drop" interface because the language never knows
 // when the object is no longer in use, so this semi-hack is used.
 
-export async function getConnection<T>(cb: (pg: PoolClient) => Promise<T>): Promise<T> {
+export async function getConnection<T>(
+    cb: (pg: PoolClient) => Promise<T>
+): Promise<T> {
     var client = await pool.connect();
     var ret: T;
     ret = await cb(client);
@@ -36,6 +39,5 @@ export const slots = (n: number): string => {
 
 export type UUID = string;
 export const makeUuid = (id: string): UUID | undefined => {
-    var r = /^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$/i;
-    return r.exec(id) ? id as UUID : undefined;
-}
+    return validateUuid(id) ? (id as UUID) : undefined;
+};

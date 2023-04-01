@@ -1,4 +1,3 @@
 export interface Department {
-    name: string,
-    id: uuid
+    name: string;
 }
