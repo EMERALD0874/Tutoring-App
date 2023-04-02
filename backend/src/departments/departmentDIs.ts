@@ -1,8 +1,6 @@
-import { Query, QueryResult } from 'pg';
+import { QueryResult } from 'pg';
 import { getConnection } from '../common';
-// import { getConnection, slots } from "../common";
 import { Department } from './departments';
-import { UUID } from '../common';
 
 export const selectDepartments = async (): Promise<Department[]> => {
     const sql = `
@@ -40,6 +38,7 @@ export const createDepartment = async (
     }
     return result.rows[0];
 };
+
 export const deleteDepartment = async (
     department: string
 ): Promise<Department | undefined> => {

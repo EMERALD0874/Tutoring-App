@@ -1,5 +1,4 @@
-import { NextFunction, request, Request, Response, Router } from 'express';
-import { v4 as genUuid, validate as validateUuid } from 'uuid';
+import { NextFunction, Request, Response, Router } from 'express';
 import {
     createDepartment,
     deleteDepartment,
@@ -48,6 +47,7 @@ departmentsRouter
             }
         }
     );
+    
 departmentsRouter
     .route('/:id')
     .delete(
