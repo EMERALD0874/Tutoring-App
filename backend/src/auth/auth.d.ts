@@ -10,15 +10,15 @@ export interface Token {
     expires: Date;
 }
 
-export interface TokenResponse{
+export interface TokenResponse {
     token: string;
     userId: string;
 }
 
 export interface RegisterUser {
+    id: string;
     first_name: string;
     last_name: string;
-    about: string;
     email: string;
     birthdate: Date;
     username: string;

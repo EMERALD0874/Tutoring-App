@@ -15,5 +15,14 @@ export interface UpdateUser {
     email?: string;
     birthdate?: Date;
     username?: string;
-    //password?: string // This should be change only with auth routes
+}
+
+export interface NewUser {
+    id: string;
+    first_name: string;
+    last_name: string;
+    email: string;
+    birthdate: Date;
+    username: string;
+    password_hash: string
 }

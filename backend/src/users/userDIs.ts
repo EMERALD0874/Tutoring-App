@@ -1,6 +1,7 @@
 import { QueryResult } from 'pg';
 import { getConnection, slots } from '../common';
-import { UpdateUser, User } from './user';
+import { NewUser, UpdateUser, User } from './user';
+import { RegisterUser } from '../auth/auth';
 
 export const selectUsers = async (): Promise<User[]> => {
     const sql = `
@@ -79,16 +80,16 @@ export const getUserByUsername = async (username: string): Promise<User | undefi
     return result.rows[0];
 };
 
-export const insertUser = async (user: User): Promise<User | undefined> => {
+export const insertUser = async (user: NewUser): Promise<User | undefined> => {
     const sql = `
         INSERT INTO users (
             id,
             first_name,
             last_name,
             username,
-            about,
             email,
-            birthdate
+            birthdate,
+            password_hash
             )
         VALUES (${slots(7)})
         RETURNING 
@@ -107,9 +108,9 @@ export const insertUser = async (user: User): Promise<User | undefined> => {
             user.first_name,
             user.last_name,
             user.username,
-            user.about,
             user.email,
             user.birthdate,
+            user.password_hash
         ]);
     });
 

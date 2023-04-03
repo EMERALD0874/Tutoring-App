@@ -2,7 +2,7 @@ CREATE TABLE users (
     id UUID PRIMARY KEY,
     first_name TEXT,
     last_name TEXT,
-    about TEXT,
+    about TEXT DEFAULT (""),
     email TEXT,
     birthdate DATE,
     username UNIQUE TEXT,
