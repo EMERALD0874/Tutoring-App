@@ -17,6 +17,7 @@ sessionsRouter
     .route('/')
     .all((req: Request, res: Response, next: NextFunction) => {
         // Future auth section
+        next();
     })
     .get(async (req: Request, res: Response, next: NextFunction) => {
         const userRows = await selectSessions();
@@ -86,6 +87,7 @@ sessionsRouter
             res.json({ error: 'Invalid UUID' });
             return;
         }
+        next();
     })
     .get(async (req: Request, res: Response, next: NextFunction) => {
         const session = await selectSessionByID(req.params.id);
@@ -101,9 +103,15 @@ sessionsRouter
     .delete(async (req: Request, res: Response, next: NextFunction) => {
         try {
             const deletedId = await deleteSession(req.params.id);
-            res.status(200);
+            if (deletedId == null) {
+                res.status(404);
+            }
+            else {
+                res.status(200);
+            }
             res.json({ id: deletedId });
         } catch (error) {
+            console.log(error)
             res.status(500);
             res.json({ error: 'Internal Server Error' });
         }
