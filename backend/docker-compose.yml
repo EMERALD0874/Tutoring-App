@@ -3,15 +3,15 @@ name: docere-service
 services:
     docere-service:
         build:
-          context: .
+            context: .
         depends_on:
-          - docere-db
+            - docere-db
         ports:
-          - "3000:3000"
+            - '3000:3000'
         environment:
-          - DB_HOST=docere-db
-      
+            - DB_HOST=docere-db
+
     docere-db:
         build: ./database/
         ports:
-          - "5432:5432"
+            - '5432:5432'
