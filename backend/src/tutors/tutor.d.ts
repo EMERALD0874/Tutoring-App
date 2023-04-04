@@ -1,11 +1,11 @@
 import {uuid, Uuid} from 'uuid';
 export interface TutorPATCHQuery {
     ttid: string,
-    when: Date?,
+    when: string?,
 }
 
 export interface TutorPOSTQuery {
-    when: Date,
+    when: string,
 }
 
 export interface TutorPOSTResponse {

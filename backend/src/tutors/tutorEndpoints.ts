@@ -1,13 +1,18 @@
 import { NextFunction, request, Request, Response, Router } from 'express';
-import { getConnection } from '../common';
+import { getConnection, makeUuid } from '../common';
 import { TypedRequestBody, TypedResponse } from '../types';
 import { TutorDELETEQuery, TutorPATCHQuery, TutorPOSTQuery, TutorPOSTResponse } from './tutor';
-import { v4 } from 'uuid';
+import { v4, validate } from 'uuid';
 
 export const tutorsRouter = Router();
 
 // /api/tutors/:userid
 tutorsRouter.route("/:userid")
+    .all(
+        async (_: Request, __: Response, next: NextFunction) => {
+            next();
+        }
+    )
     // GET /api/tutors/:userid
     // Returns an existing user if the tutor exists, along with avail times.
     .get(async (req: Request, resp: Response, _: NextFunction) => {
@@ -36,7 +41,7 @@ tutorsRouter.route("/:userid")
             resp.status(404).end();
         }
         else {
-            resp.json(query.rows[0]).end();
+            resp.json(query.rows).end();
         }
     })
     // PATCH /api/tutors/:userid
@@ -54,8 +59,9 @@ tutorsRouter.route("/:userid")
                 req.body.when ??
                 "NOT A DATE"
             ));
+        console.log(`${req.body.when}, ${date}`);
         if (Number.isNaN(date.valueOf())) {
-            resp.status(400).end();
+            resp.status(400).json({error: "invalid date"}).end();
             return;
         }
 
@@ -65,7 +71,7 @@ tutorsRouter.route("/:userid")
                 tutor_times
             SET
                 day_of = $1,
-                start_time = $2,
+                start_time = $2
             WHERE
                 tutor_id = $3 AND
                 id = $4;`,
@@ -76,7 +82,7 @@ tutorsRouter.route("/:userid")
                     req.body.ttid
                 ])
         });
-        if (result.rowCount == 0) {
+        if (result.rowCount === 0) {
             resp.status(404).end();
         } else {
             resp.status(200).end();
@@ -88,6 +94,15 @@ tutorsRouter.route("/:userid")
     //
     // Adds tutor time to database 
     .post(async (req: TypedRequestBody<TutorPOSTQuery>, resp: TypedResponse<TutorPOSTResponse>, _: NextFunction) => {
+        const date: Date =
+            new Date((
+                req.body.when ??
+                "NOT A DATE"
+            ));
+        if (Number.isNaN(date.valueOf())) {
+            resp.status(400).end();
+            return;
+        }
         const result: string | undefined = await getConnection(async (db) => {
             const id = v4();
             const good = await db.query(`
@@ -109,8 +124,8 @@ tutorsRouter.route("/:userid")
                 [
                     req.params.userid,
                     id,
-                    req.body.when.toISOString().split('T')[0],
-                    req.body.when.toISOString().split('T')[1],
+                    date.toISOString().split('T')[0],
+                    date.toISOString().split('T')[1],
                 ]);
             if (good.rowCount > 0) {
                 return id;
@@ -131,7 +146,7 @@ tutorsRouter.route("/:userid")
     // Deletes tutor time from database
     .delete(async (req: TypedRequestBody<TutorDELETEQuery>, resp: Response, _: NextFunction) => {
         const result = await getConnection(async (db) => {
-            return await db.query(`
+            return db.query(`
                 DELETE FROM 
                     tutor_times
                 WHERE

@@ -28,7 +28,7 @@ const pool = new Pool({
 //     console.log(ret.rows);
 // })
 // ```
-// Yes, this could have been an async function, but ofc garbage collected
+// Yes, this could have been a regular function, but ofc garbage collected
 // languages don't have a "drop" interface because the language never knows
 // when the object is no longer in use, so this semi-hack is used.
 
