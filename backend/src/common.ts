@@ -1,4 +1,5 @@
 import { Pool, PoolClient } from 'pg';
+import { validate, validate as validateUuid } from 'uuid';
 
 // Environment Variables
 export const port: number = +(process.env.PROJECT_PORT || 5000);
@@ -26,9 +27,14 @@ const pool = new Pool({
 // .then((ret) => {
 //     console.log(ret.rows);
 // })
+// ```
+// Yes, this could have been an async function, but ofc garbage collected
+// languages don't have a "drop" interface because the language never knows
+// when the object is no longer in use, so this semi-hack is used.
 
-
-export async function getConnection<T>(cb: (pg: PoolClient) => Promise<T>): Promise<T> {
+export async function getConnection<T>(
+    cb: (pg: PoolClient) => Promise<T>
+): Promise<T> {
     var client = await pool.connect();
     var ret: T;
     ret = await cb(client);
@@ -38,4 +44,9 @@ export async function getConnection<T>(cb: (pg: PoolClient) => Promise<T>): Prom
 
 export const slots = (n: number): string => {
     return [...Array(n).keys()].map((i) => `$${i + 1}`).join(', ');
+};
+
+export type UUID = string;
+export const makeUuid = (id: string): UUID | undefined => {
+    return validateUuid(id) ? (id as UUID) : undefined;
 };

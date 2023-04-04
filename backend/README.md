@@ -11,4 +11,3 @@ Postman or a similar API testing tool is recommended.
 Build the project docker image with `docker-compose build`
 Run the project container with `docker-compose up`
 Stop the container with CTRL-C and then run `docker-compose down` to remove the container
-
