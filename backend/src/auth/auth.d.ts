@@ -4,9 +4,13 @@ export interface LoginRequest {
 }
 
 export interface Token {
-    id: string;
     token: string;
-    userId: string;
+    user_id: string;
+    expires: Date;
+}
+
+export interface TokenInfo {
+    user_id: string;
     expires: Date;
 }
 

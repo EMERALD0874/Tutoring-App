@@ -2,10 +2,10 @@ CREATE TABLE users (
     id UUID PRIMARY KEY,
     first_name TEXT,
     last_name TEXT,
-    about TEXT DEFAULT (""),
+    about TEXT,
     email TEXT,
     birthdate DATE,
-    username UNIQUE TEXT,
+    username TEXT UNIQUE,
     password_hash TEXT
 );
 
@@ -36,9 +36,8 @@ CREATE TABLE subjects (
     department TEXT REFERENCES departments(name)
 );
 
-CREATE TABLE login_keys {
-    id TEXT PRIMARY KEY,
-    user_id TEXT REFERENCES users(id),
+CREATE TABLE auth_tokens ( 
+    user_id UUID REFERENCES users(id),
     token TEXT NOT NULL,
-    expires DATE NOT NULL
-};
+    expires TIMESTAMP NOT NULL
+);

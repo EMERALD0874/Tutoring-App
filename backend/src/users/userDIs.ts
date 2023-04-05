@@ -1,7 +1,6 @@
 import { QueryResult } from 'pg';
 import { getConnection, slots } from '../common';
 import { NewUser, UpdateUser, User } from './user';
-import { RegisterUser } from '../auth/auth';
 
 export const selectUsers = async (): Promise<User[]> => {
     const sql = `
@@ -35,7 +34,8 @@ export const selectUserByID = async (id: string): Promise<User | undefined> => {
                 username,
                 about,
                 email,
-                birthdate
+                birthdate,
+                password_hash
             FROM 
                 users
             WHERE
@@ -53,7 +53,9 @@ export const selectUserByID = async (id: string): Promise<User | undefined> => {
     return result.rows[0];
 };
 
-export const getUserByUsername = async (username: string): Promise<User | undefined> => {
+export const selectUserByUsername = async (
+    username: string
+): Promise<User | undefined> => {
     const sql = `
         SELECT
             id,
@@ -62,7 +64,8 @@ export const getUserByUsername = async (username: string): Promise<User | undefi
             username,
             about,
             email,
-            birthdate
+            birthdate,
+            password_hash
         FROM 
             users
         WHERE
@@ -70,7 +73,7 @@ export const getUserByUsername = async (username: string): Promise<User | undefi
     `;
 
     const result: QueryResult<User> = await getConnection((conn) => {
-        return conn.query(sql, [username])
+        return conn.query(sql, [username]);
     });
 
     if (result.rowCount === 0) {
@@ -110,7 +113,7 @@ export const insertUser = async (user: NewUser): Promise<User | undefined> => {
             user.username,
             user.email,
             user.birthdate,
-            user.password_hash
+            user.password_hash,
         ]);
     });
 

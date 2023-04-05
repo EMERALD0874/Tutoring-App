@@ -1,50 +1,84 @@
 import { QueryResult } from 'pg';
 import { getConnection, slots } from '../common';
-import { TokenResponse } from './auth';
+import { Token, TokenInfo } from './auth';
 
-export const getAuthToken = async (id: string): Promise<string | undefined> => {
+export const getAuthToken = async (
+    token: string
+): Promise<TokenInfo | undefined> => {
     const sql = `
             SELECT
-                token
+                user_id,
+                expires
             FROM
                 auth_tokens
             WHERE
-                id = $1;
+                token = $1;
         `;
-    
-    const result: QueryResult<{token: string}> = await getConnection((conn) => {
-        return conn.query(sql, [id]);
+
+    const result: QueryResult<TokenInfo> = await getConnection((conn) => {
+        return conn.query(sql, [token]);
     });
 
     if (result.rowCount == 0) {
         return undefined;
     }
 
-    return result.rows[0].token;
+    return result.rows[0];
 };
 
-export const getAuthTokenByUserId = async (userId: string): Promise<string | undefined> => {
+export const insertToken = async (token: Token): Promise<Token | undefined> => {
+    const sql = `
+            INSERT INTO auth_tokens (
+                token,
+                user_id,
+                expires
+                )
+            VALUES (${slots(3)})
+            RETURNING
+                token,
+                user_id,
+                expires;
+    `;
+
+    const result: QueryResult<Token> = await getConnection((conn) => {
+        return conn.query(sql, [token.token, token.user_id, token.expires]);
+    });
+
+    if (result.rowCount === 0) {
+        return undefined;
+    }
+
+    return result.rows[0];
+};
+
+export const getAuthTokenByUserId = async (
+    userId: string
+): Promise<string | undefined> => {
     const sql = `
             SELECT
                 token
             FROM
                 auth_tokens
             WHERE
-                userId = $1;
+                user_id = $1;
         `;
-    
-    const result: QueryResult<{token: string}> = await getConnection((conn) => {
-        return conn.query(sql, [userId]);
-    });
 
-    if (result.rowCount == 0) {
+    const result: QueryResult<{ token: string }> = await getConnection(
+        (conn) => {
+            return conn.query(sql, [userId]);
+        }
+    );
+
+    if (result.rowCount === 0) {
         return undefined;
     }
 
     return result.rows[0].token;
 };
 
-export const getPassHashByUsername = async (username: string): Promise<string | undefined> => {
+export const getPassHashByUsername = async (
+    username: string
+): Promise<string | undefined> => {
     const sql = `
             SELECT
                 password_hash
@@ -54,13 +88,15 @@ export const getPassHashByUsername = async (username: string): Promise<string | 
                 username = $1;
         `;
 
-    const result: QueryResult<{password_hash: string}> = await getConnection((conn) => {
-        return conn.query(sql, [username])
-    });
+    const result: QueryResult<{ password_hash: string }> = await getConnection(
+        (conn) => {
+            return conn.query(sql, [username]);
+        }
+    );
 
     if (result.rowCount === 0) {
         return undefined;
     }
 
     return result.rows[0].password_hash;
-}
+};

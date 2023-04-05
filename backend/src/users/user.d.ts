@@ -6,6 +6,7 @@ export interface User {
     about: string;
     email: string;
     birthdate: Date;
+    password_hash: string;
 }
 
 export interface UpdateUser {
@@ -24,5 +25,5 @@ export interface NewUser {
     email: string;
     birthdate: Date;
     username: string;
-    password_hash: string
+    password_hash: string;
 }
