@@ -1,11 +1,20 @@
 import express, { Request, Response, Router } from 'express';
+import cors, { CorsOptions } from 'cors';
 import { usersRouter } from './users/userEndpoints';
 import { json as jsonParser } from 'body-parser';
 import { departmentsRouter } from './departments/departmentsEndpoints';
 import { subjectsRouter } from './subjects/subjectsEndpoints';
 
 export const app = express();
+
+var corsOptions: CorsOptions = {
+    origin: '*',
+    optionsSuccessStatus: 200
+  }
+
 app.use(jsonParser());
+app.use(cors());
+
 const port = +(process.env.SERVICE_PORT || 3000);
 const host = process.env.SERVICE_HOST || 'localhost';
 
