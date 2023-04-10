@@ -16,6 +16,10 @@ tutorsRouter.route("/:userid")
     // GET /api/tutors/:userid
     // Returns an existing user if the tutor exists, along with avail times.
     .get(async (req: Request, resp: Response, _: NextFunction) => {
+        const userid = makeUuid(req.params.userid);
+        if (userid === undefined) {
+            resp.status(400).json({ error: "invalid uuid" }).end();
+        }
         try {
             const query = await getConnection(async (db) => {
                 return db.query(`
@@ -36,7 +40,7 @@ tutorsRouter.route("/:userid")
                 tutor_times ON tutors.id = tutor_times.tutor_id
             WHERE
                 users.id = $1;`,
-                    [req.params.userid]);
+                    [userid]);
             });
             if (query.rows.length === 0) {
                 resp.status(404).json({ error: "failed to find any rows" }).end();
@@ -69,6 +73,11 @@ tutorsRouter.route("/:userid")
             resp.status(400).json({ error: "invalid date" }).end();
             return;
         }
+        const userid = makeUuid(req.params.userid);
+        const ttid = makeUuid(req.body.ttid);
+        if (userid === undefined || ttid === undefined) {
+            resp.status(400).json({ error: "invalid uuid" }).end();
+        }
         try {
             const result = await getConnection(async (db) => {
                 return db.query(`
@@ -83,8 +92,8 @@ tutorsRouter.route("/:userid")
                     [
                         date.toISOString().split('T')[0],
                         date.toISOString().split('T')[1],
-                        req.params.userid,
-                        req.body.ttid
+                        userid,
+                        ttid
                     ])
             });
             if (result.rowCount === 0) {
@@ -112,25 +121,29 @@ tutorsRouter.route("/:userid")
             resp.status(400).end();
             return;
         }
+        const userid = makeUuid(req.params.userid);
+        if (userid === undefined) {
+            resp.status(400).json({ error: "invalid uuid" }).end();
+        }
         try {
             const result: string | undefined = await getConnection(async (db) => {
-                const id = v4();
+                const id = makeUuid(v4());
                 const good = await db.query(`
-            INSERT INTO
-                tutor_times
-                (
-                    tutor_id,
-                    id,
-                    day_of, 
-                    start_time
-                )
-            VALUES
-                (
-                    $1,
-                    $2,
-                    $3,
-                    $4
-                );`,
+                INSERT INTO
+                    tutor_times
+                    (
+                        tutor_id,
+                        id,
+                        day_of, 
+                        start_time
+                    )
+                VALUES
+                    (
+                        $1,
+                        $2,
+                        $3,
+                        $4
+                    );`,
                     [
                         req.params.userid,
                         id,
@@ -160,6 +173,11 @@ tutorsRouter.route("/:userid")
     //
     // Deletes tutor time from database
     .delete(async (req: TypedRequestBody<TutorDELETEQuery>, resp: Response, _: NextFunction) => {
+        const userid = makeUuid(req.params.userid);
+        const ttid = makeUuid(req.body.id);
+        if (userid === undefined || ttid === undefined) {
+            resp.status(400).json({ error: "invalid uuid" }).end();
+        }
         try {
             const result = await getConnection(async (db) => {
                 return db.query(`
@@ -169,8 +187,8 @@ tutorsRouter.route("/:userid")
                     id = $1 AND
                     tutor_id = $2;`,
                     [
-                        req.body.id,
-                        req.params.userid
+                        userid,
+                        ttid,
                     ]);
             });
             if (result.rowCount > 0) {
