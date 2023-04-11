@@ -21,6 +21,7 @@ CREATE TABLE tutor_times (
 CREATE TABLE sessions (
     id UUID PRIMARY KEY,
     student_id UUID REFERENCES users(id),
+    tutor_id UUID REFERENCES tutors(id),
     appointment UUID REFERENCES tutor_times(id)
 );
 
