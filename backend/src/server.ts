@@ -6,7 +6,6 @@ import { json as jsonParser } from 'body-parser';
 import { host, port } from './common';
 import { departmentsRouter } from './departments/departmentsEndpoints';
 import { subjectsRouter } from './subjects/subjectsEndpoints';
-import { usersRouter } from './users/userEndpoints';
 import { authRouter } from './auth/authEndpoints';
 
 export const app = express();
