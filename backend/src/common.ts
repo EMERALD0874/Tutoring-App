@@ -18,6 +18,27 @@ const pool = new Pool({
 
 export const projectSecret = process.env.SECRET_KEY ?? developmentSecret;
 
+// Database Access Helper Functions
+
+// getConnection(cb: (client: PoolClient) => void)
+// This facilitates the automatic creation and cleanup of connections
+// to the postgres db server. Supply the cb as a callback after the
+// connection has been made.
+//
+// Example:
+// ```ts
+// getConnection(async (client: PoolClient) => {
+//     return client.query("SELECT NOW();");
+// })
+// .then((ret) => {
+//     console.log(ret.rows);
+// })
+// ```
+// Yes, this could have been a regular function, but ofc garbage collected
+// languages don't have a "drop" interface because the language never knows
+// when the object is no longer in use, so this semi-hack is used.
+
+
 export async function getConnection<T>(
     cb: (pg: PoolClient) => Promise<T>
 ): Promise<T> {

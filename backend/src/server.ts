@@ -1,4 +1,5 @@
 import express, { Request, Response, Router } from 'express';
+import { tutorsRouter } from './tutors/tutorEndpoints';
 import { usersRouter } from './users/userEndpoints';
 import { sessionsRouter } from './sessions/sessionEndpoints';
 import { json as jsonParser } from 'body-parser';
@@ -12,7 +13,9 @@ export const app = express();
 app.use(jsonParser());
 
 const apiRouter = Router();
+
 apiRouter.use('/auth', authRouter);
+apiRouter.use('/tutors', tutorsRouter);
 apiRouter.use('/users', usersRouter);
 apiRouter.use('/departments', departmentsRouter);
 apiRouter.use('/subjects', subjectsRouter);
