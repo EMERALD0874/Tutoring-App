@@ -19,7 +19,16 @@ const pool = new Pool({
 // to the postgres db server. Supply the cb as a callback after the
 // connection has been made.
 //
-// Yes, this could have been an async function, but ofc garbage collected
+// Example:
+// ```ts
+// getConnection(async (client: PoolClient) => {
+//     return client.query("SELECT NOW();");
+// })
+// .then((ret) => {
+//     console.log(ret.rows);
+// })
+// ```
+// Yes, this could have been a regular function, but ofc garbage collected
 // languages don't have a "drop" interface because the language never knows
 // when the object is no longer in use, so this semi-hack is used.
 
