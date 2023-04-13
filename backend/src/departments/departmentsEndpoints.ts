@@ -47,7 +47,7 @@ departmentsRouter
             }
         }
     );
-    
+
 departmentsRouter
     .route('/:id')
     .delete(

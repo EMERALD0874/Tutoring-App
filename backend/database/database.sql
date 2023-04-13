@@ -4,7 +4,9 @@ CREATE TABLE users (
     last_name TEXT,
     about TEXT,
     email TEXT,
-    birthdate DATE
+    birthdate DATE,
+    username TEXT UNIQUE,
+    password_hash TEXT
 );
 
 CREATE TABLE tutors (
@@ -32,4 +34,10 @@ CREATE TABLE departments (
 CREATE TABLE subjects (
     name TEXT PRIMARY KEY,
     department TEXT REFERENCES departments(name)
+);
+
+CREATE TABLE auth_tokens ( 
+    user_id UUID REFERENCES users(id),
+    token TEXT NOT NULL,
+    expires TIMESTAMP NOT NULL
 );
