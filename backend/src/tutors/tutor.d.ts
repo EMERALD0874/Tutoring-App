@@ -1,7 +1,13 @@
 import {uuid, Uuid} from 'uuid';
-export interface TutorPATCHQuery {
-    ttid: string,
-    when: string?,
+import { UUID } from '../common';
+
+export interface TutorDetails {
+    id: UUID,
+    subjects: UUID[]?
+}
+
+export interface UpdateTutor {
+    subjects: [string],
 }
 
 export interface TutorPOSTQuery {
@@ -14,4 +20,9 @@ export interface TutorPOSTResponse {
 
 export interface TutorDELETEQuery {
     id: string,
+}
+
+export interface TutorSubjectRelation {
+    tutor_id: string,
+    subject_id: string,
 }

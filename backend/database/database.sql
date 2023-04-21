@@ -13,6 +13,11 @@ CREATE TABLE tutors (
     id UUID PRIMARY KEY REFERENCES users(id)
 );
 
+CREATE TABLE tutors_subjects (
+    tutor_id UUID PRIMARY KEY REFERENCES tutors(id) ON DELETE CASCADE,
+    subject_id TEXT references SUBJECTS(id)
+)
+
 CREATE TABLE tutor_times (
     tutor_id UUID REFERENCES tutors(id),
     id UUID PRIMARY KEY,
@@ -32,7 +37,8 @@ CREATE TABLE departments (
 );
 
 CREATE TABLE subjects (
-    name TEXT PRIMARY KEY,
+    id UUID PRIMARY KEY,
+    name TEXT,
     department TEXT REFERENCES departments(name)
 );
 

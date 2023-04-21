@@ -2,14 +2,13 @@ import { NextFunction, Request, Response, Router } from 'express';
 import { createSubject, deleteSubject, selectSubjects } from './subjectsDIs';
 import { TypedRequestBody, TypedResponse, Alert } from '../types';
 import { Subject } from './subjects';
+import { authenticate } from '../auth/authCommon';
 
 export const subjectsRouter = Router();
 
 subjectsRouter
     .route('/')
-    .all((req: Request, res: Response, next: NextFunction) => {
-        next();
-    })
+    .all(authenticate, (req: Request, res: Response, next: NextFunction) => {next()})
     .get(async (req: Request, res: Response, next: NextFunction) => {
         const subjectRows = await selectSubjects();
         return res.json(subjectRows);
@@ -53,6 +52,7 @@ subjectsRouter
 
 subjectsRouter
     .route('/:id')
+    .all(authenticate, (req: Request, res: Response, next: NextFunction) => {next()})
     .delete(
         async (
             req: TypedRequestBody<Subject>,
