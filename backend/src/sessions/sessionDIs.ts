@@ -1,6 +1,6 @@
 import { QueryResult } from 'pg';
-import { getConnection, slots } from "../common";
-import { Session, UpdateSession } from "./session";
+import { getConnection, slots } from '../common';
+import { Session, UpdateSession } from './session';
 
 export const selectSessions = async (): Promise<Session[]> => {
     const sql = `
@@ -13,14 +13,18 @@ export const selectSessions = async (): Promise<Session[]> => {
             sessions;
     `;
 
-    const result: QueryResult<Session> = await getConnection<QueryResult>((conn) => {
-        return conn.query(sql, [])
-    });
+    const result: QueryResult<Session> = await getConnection<QueryResult>(
+        (conn) => {
+            return conn.query(sql, []);
+        }
+    );
 
     return result.rows;
 };
 
-export const selectSessionByID = async (id: string): Promise<Session | undefined> => {
+export const selectSessionByID = async (
+    id: string
+): Promise<Session | undefined> => {
     const sql = `
             SELECT
                 id,
@@ -34,7 +38,7 @@ export const selectSessionByID = async (id: string): Promise<Session | undefined
         `;
 
     const result: QueryResult<Session> = await getConnection((conn) => {
-        return conn.query(sql, [id])
+        return conn.query(sql, [id]);
     });
 
     if (result.rowCount === 0) {
@@ -44,8 +48,9 @@ export const selectSessionByID = async (id: string): Promise<Session | undefined
     return result.rows[0];
 };
 
-
-export const insertSession = async (session: Session): Promise<Session | undefined> => {
+export const insertSession = async (
+    session: Session
+): Promise<Session | undefined> => {
     const sql = `
         INSERT INTO sessions (
             id,
@@ -76,7 +81,9 @@ export const insertSession = async (session: Session): Promise<Session | undefin
     return result.rows[0];
 };
 
-export const deleteSession = async (id: string): Promise<string | undefined> => {
+export const deleteSession = async (
+    id: string
+): Promise<string | undefined> => {
     const sql = `
             DELETE FROM
                 sessions
@@ -97,7 +104,10 @@ export const deleteSession = async (id: string): Promise<string | undefined> => 
     return id;
 };
 
-export const updateSession = async (id: string, session: UpdateSession): Promise<Session | undefined> => {
+export const updateSession = async (
+    id: string,
+    session: UpdateSession
+): Promise<Session | undefined> => {
     const currSession = await selectSessionByID(id);
 
     if (currSession == null) {
@@ -107,17 +117,17 @@ export const updateSession = async (id: string, session: UpdateSession): Promise
     let updatedFields: string[] = [];
     let updatedValues: any[] = [];
 
-    if(session.student_id != null) {
+    if (session.student_id != null) {
         updatedFields.push('student_id');
         updatedValues.push(session.student_id);
     }
 
-    if(session.tutor_id != null) {
+    if (session.tutor_id != null) {
         updatedFields.push('tutor_id');
         updatedValues.push(session.tutor_id);
     }
 
-    if(session.appointment != null) {
+    if (session.appointment != null) {
         updatedFields.push('appointment');
         updatedValues.push(session.appointment);
     }
@@ -146,7 +156,7 @@ export const updateSession = async (id: string, session: UpdateSession): Promise
     `;
 
     const result: QueryResult<Session> = await getConnection((conn) => {
-        return conn.query(sql, updatedValues)
+        return conn.query(sql, updatedValues);
     });
 
     if (result.rowCount === 0) {
@@ -155,4 +165,3 @@ export const updateSession = async (id: string, session: UpdateSession): Promise
 
     return result.rows[0];
 };
-

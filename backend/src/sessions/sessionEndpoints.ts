@@ -10,12 +10,13 @@ import {
 } from './sessionDIs';
 import { Session, CreateSession, UpdateSession } from './session';
 import { TypedRequestBody, TypedResponse, Alert } from '../types';
+import { authenticate } from '../auth/authCommon';
 
 export const sessionsRouter = Router();
 
 sessionsRouter
     .route('/')
-    .all((req: Request, res: Response, next: NextFunction) => {
+    .all(authenticate, (req: Request, res: Response, next: NextFunction) => {
         // Future auth section
         next();
     })
@@ -32,13 +33,19 @@ sessionsRouter
             let missingFields: string[] = [];
 
             // If anyone knows a better way to check the properties of an object, that would be nice
-            if (req.body.student_id == null || req.body.student_id.trim() === '') {
+            if (
+                req.body.student_id == null ||
+                req.body.student_id.trim() === ''
+            ) {
                 missingFields.push('student_id');
             }
             if (req.body.tutor_id == null || req.body.tutor_id.trim() === '') {
                 missingFields.push('tutor_id');
             }
-            if (req.body.appointment == null || req.body.appointment.trim() === '') {
+            if (
+                req.body.appointment == null ||
+                req.body.appointment.trim() === ''
+            ) {
                 missingFields.push('appointment');
             }
 
@@ -62,7 +69,9 @@ sessionsRouter
 
             //Add session to database and send response
             try {
-                const session: Session | undefined = await insertSession(newSession);
+                const session: Session | undefined = await insertSession(
+                    newSession
+                );
                 if (session === undefined) {
                     res.status(500);
                     res.json({ error: 'Error creating session' });
@@ -88,7 +97,7 @@ sessionsRouter
             return;
         }
         next();
-    })
+    }, authenticate)
     .get(async (req: Request, res: Response, next: NextFunction) => {
         const session = await selectSessionByID(req.params.id);
 
@@ -105,13 +114,12 @@ sessionsRouter
             const deletedId = await deleteSession(req.params.id);
             if (deletedId == null) {
                 res.status(404);
-            }
-            else {
+            } else {
                 res.status(200);
             }
             res.json({ id: deletedId });
         } catch (error) {
-            console.log(error)
+            console.log(error);
             res.status(500);
             res.json({ error: 'Internal Server Error' });
         }
@@ -123,7 +131,10 @@ sessionsRouter
             next: NextFunction
         ) => {
             try {
-                const updatedSession = await updateSession(req.params.id, req.body);
+                const updatedSession = await updateSession(
+                    req.params.id,
+                    req.body
+                );
                 res.json(updatedSession);
                 res.status(200);
             } catch (error) {

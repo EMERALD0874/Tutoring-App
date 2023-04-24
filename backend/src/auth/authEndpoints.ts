@@ -18,7 +18,6 @@ authRouter
             res: TypedResponse<TokenResponse | Alert>,
             next: NextFunction
         ) => {
-
             if (req.body.username == null) {
                 res.status(400);
                 res.json({ error: 'Field "username" must not be empty' });
@@ -38,7 +37,6 @@ authRouter
             }
 
             if (await verifyLogin(req.body.username, req.body.password)) {
-
                 const token = await getAuthTokenByUserId(user.id);
                 if (!token) {
                     res.status(201);

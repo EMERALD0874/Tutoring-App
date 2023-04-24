@@ -18,6 +18,26 @@ export const selectSubjects = async (): Promise<Subject[]> => {
     return result.rows;
 };
 
+export const selectSubjectById = async (
+    id: string
+): Promise<Subject | undefined> => {
+    const sql = `
+        SELECT
+            name,
+            department
+        FROM
+            subjects
+        WHERE 
+            id = $1;
+        `;
+    const result: QueryResult<Subject> = await getConnection<QueryResult>(
+        (db) => {
+            return db.query(sql, [id]);
+        }
+    );
+    return result.rows[0];
+};
+
 export const createSubject = async (
     sub: Subject
 ): Promise<Subject | undefined> => {

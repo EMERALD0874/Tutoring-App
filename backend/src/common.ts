@@ -38,7 +38,6 @@ export const projectSecret = process.env.SECRET_KEY ?? developmentSecret;
 // languages don't have a "drop" interface because the language never knows
 // when the object is no longer in use, so this semi-hack is used.
 
-
 export async function getConnection<T>(
     cb: (pg: PoolClient) => Promise<T>
 ): Promise<T> {
@@ -57,4 +56,3 @@ export type UUID = string;
 export const makeUuid = (id: string): UUID | undefined => {
     return validateUuid(id) ? (id as UUID) : undefined;
 };
-

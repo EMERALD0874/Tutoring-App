@@ -2,13 +2,16 @@ import { NextFunction, Request, Response, Router } from 'express';
 import { createSubject, deleteSubject, selectSubjects } from './subjectsDIs';
 import { TypedRequestBody, TypedResponse, Alert } from '../types';
 import { Subject } from './subjects';
+import { validate as validateUuid } from 'uuid';
 import { authenticate } from '../auth/authCommon';
 
 export const subjectsRouter = Router();
 
 subjectsRouter
     .route('/')
-    .all(authenticate, (req: Request, res: Response, next: NextFunction) => {next()})
+    .all(authenticate, (req: Request, res: Response, next: NextFunction) => {
+        next();
+    })
     .get(async (req: Request, res: Response, next: NextFunction) => {
         const subjectRows = await selectSubjects();
         return res.json(subjectRows);
@@ -52,7 +55,14 @@ subjectsRouter
 
 subjectsRouter
     .route('/:id')
-    .all(authenticate, (req: Request, res: Response, next: NextFunction) => {next()})
+    .all((req: Request, res: Response, next: NextFunction) => {
+        if (!validateUuid(req.params.id)) {
+            res.status(400);
+            res.json({ error: 'Invalid UUID' });
+            return;
+        }
+        next();
+    }, authenticate)
     .delete(
         async (
             req: TypedRequestBody<Subject>,
