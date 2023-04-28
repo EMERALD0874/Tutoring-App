@@ -1,204 +1,591 @@
-import { NextFunction, request, Request, Response, Router } from 'express';
-import { getConnection, makeUuid } from '../common';
+import {
+    NextFunction,
+    request,
+    Request,
+    response,
+    Response,
+    Router,
+} from 'express';
+import { makeUuid, UUID } from '../common';
 import { TypedRequestBody, TypedResponse } from '../types';
-import { TutorDELETEQuery, TutorPATCHQuery, TutorPOSTQuery, TutorPOSTResponse } from './tutor';
-import { v4, validate } from 'uuid';
+import {
+    TutorDELETEQuery,
+    UpdateTutor,
+    TutorDetails,
+    NewTutor,
+    UpdateTutorTime,
+    TutorTime,
+    NewTutorTime,
+    TutorSubjectRelation,
+} from './tutor';
+import { v4 as genUuid, validate as validateUuid } from 'uuid';
+import {
+    deleteTutorSubject,
+    deleteTutor,
+    selectTutors,
+    insertTutorSubject,
+    insertTutor,
+    selectSubjectsByTutor,
+    selectTimesByTutor,
+    _getFullTutor,
+    insertTutorTime,
+    selectTutor,
+    deleteAllTutorTimes,
+    deleteTutorTime,
+    selectTutorTime,
+    updateTutorTime,
+    deleteAllSubjectsForTutor,
+} from './tutorDIs';
+import { authenticate } from '../auth/authCommon';
+import { selectUserByID } from '../users/userDIs';
+import { selectSubjectById, selectSubjects } from '../subjects/subjectsDIs';
 
 export const tutorsRouter = Router();
 
-// /api/tutors/:userid
-tutorsRouter.route("/:userid")
-    .all(
-        async (_: Request, __: Response, next: NextFunction) => {
-            next();
+// General tutor endpoints
+tutorsRouter
+    .route('/')
+    .all(authenticate, (req: Request, res: Response, next: NextFunction) => {
+        next();
+    })
+    .get(
+        async (
+            req: Request,
+            res: TypedResponse<TutorDetails[]>,
+            next: NextFunction
+        ) => {
+            const result = await selectTutors();
+            try {
+                const tutors = result.map(
+                    async (tutorId): Promise<TutorDetails> => {
+                        return await _getFullTutor(tutorId);
+                    }
+                );
+                res.status(200).json(
+                    (await Promise.all(tutors)).filter(
+                        (tutor) => tutor.id !== ''
+                    )
+                );
+            } catch {
+                res.status(500).json({ error: 'Internal Server Error' });
+            }
         }
     )
-    // GET /api/tutors/:userid
-    // Returns an existing user if the tutor exists, along with avail times.
-    .get(async (req: Request, resp: Response, _: NextFunction) => {
-        const userid = makeUuid(req.params.userid);
-        if (userid === undefined) {
-            resp.status(400).json({ error: "invalid uuid" }).end();
+    .post(
+        async (
+            req: TypedRequestBody<NewTutor>,
+            res: TypedResponse<TutorDetails>,
+            next: NextFunction
+        ) => {
+            try {
+                const errors: string[] = [];
+
+                const userExists = selectUserByID(req.body.tutorId) != null;
+                if (userExists) {
+                    res.status(400).json({
+                        error: `User ${req.body.tutorId} already exists.`,
+                    });
+                    return;
+                }
+
+                try {
+                    await insertTutor(req.body.tutorId);
+                } catch {
+                    res.status(500).json({ error: 'Error creating tutor' });
+                    return;
+                }
+
+                req.body.subjects.forEach(async (subject) => {
+                    try {
+                        const result = await insertTutorSubject(
+                            req.body.tutorId,
+                            subject
+                        );
+                        if (!result) {
+                            errors.push(
+                                `Error adding subject ${subject} for tutor ${req.body.tutorId}`
+                            );
+                        }
+                    } catch {
+                        errors.push(
+                            `Error adding subject ${subject} for tutor ${req.body.tutorId}`
+                        );
+                    }
+                });
+
+                req.body.times.forEach(async (time) => {
+                    try {
+                        const timeId = genUuid();
+                        const result = await insertTutorTime(
+                            req.body.tutorId,
+                            timeId,
+                            time.datetime,
+                            time.durationHours
+                        );
+                        if (!result) {
+                            errors.push(
+                                `Error creating time ${JSON.stringify(time)}`
+                            );
+                        }
+                    } catch {
+                        errors.push(
+                            `Error creating time ${JSON.stringify(time)}`
+                        );
+                    }
+                });
+
+                if (errors.length > 0) {
+                    res.status(201).json({
+                        error: `Tutor created with errors: \n${errors.join(
+                            '\n'
+                        )}`,
+                    });
+                    return;
+                }
+
+                const fullTutor = await _getFullTutor(req.body.tutorId);
+                res.status(201).json(fullTutor);
+            } catch {
+                res.status(500).json({ error: 'Internal Server Error' });
+            }
         }
-        try {
-            const query = await getConnection(async (db) => {
-                return db.query(`
-            SELECT 
-                users.first_name AS first_name,
-                users.last_name AS last_name,
-                users.about AS about,
-                users.email AS email,
-                users.birthdate AS birthday,
-                tutor_times.id AS time_id,
-                tutor_times.day_of AS day_of,
-                tutor_times.start_time AS start_time
-            FROM 
-                users
-            JOIN 
-                tutors ON users.id = tutors.id
-            JOIN
-                tutor_times ON tutors.id = tutor_times.tutor_id
-            WHERE
-                users.id = $1;`,
-                    [userid]);
+    );
+
+// /api/tutors/:userid
+tutorsRouter
+    .route('/:id')
+    .all(async (req: Request, res: Response, next: NextFunction) => {
+        if (!validateUuid(req.params.id)) {
+            res.status(400);
+            res.json({ error: 'Invalid UUID' });
+            return;
+        }
+        const exists = await selectTutor(req.params.id);
+
+        if (!exists) {
+            res.status(404).json({
+                error: `Tutor ${req.params.id} not found.`,
             });
-            if (query.rows.length === 0) {
-                resp.status(404).json({ error: "failed to find any rows" }).end();
-            }
-            else {
-                resp.json(query.rows).end();
-            }
-        } catch (x) {
-            console.log(`GET /api/tutors/:userid failed to query db ${x}`)
-            resp.status(500).json({ error: `could not scrape database` }).end();
+            return;
         }
 
-    })
+        next();
+    }, authenticate)
+    // GET /api/tutors/:userid
+    // Returns an existing user if the tutor exists, along with avail times.
+    .get(
+        async (
+            req: Request,
+            res: TypedResponse<TutorDetails>,
+            _: NextFunction
+        ) => {
+            const userid = req.params.id as UUID;
+
+            try {
+                const result = await _getFullTutor(userid);
+                res.status(200).json(result);
+            } catch (x) {
+                console.log(`GET /api/tutors/:userid failed to query db ${x}`);
+                res.status(500)
+                    .json({ error: `Internal Server Error` })
+                    .end();
+            }
+        }
+    )
+
     // PATCH /api/tutors/:userid
     // QUERY PARAMS:
     // ttid: Tutor time id. Used as specifier.
     // when: Date, updates the internal date.
-    // 
-    // 
-    // Updates the tutor appointments in the database
-    .patch(async (req: TypedRequestBody<TutorPATCHQuery>, resp: Response, _: NextFunction) => {
-        // date parse
-        const date: Date =
-            new Date((
-                req.body.when ??
-                "NOT A DATE"
-            ));
-        console.log(`${req.body.when}, ${date}`);
-        if (Number.isNaN(date.valueOf())) {
-            resp.status(400).json({ error: "invalid date" }).end();
-            return;
-        }
-        const userid = makeUuid(req.params.userid);
-        const ttid = makeUuid(req.body.ttid);
-        if (userid === undefined || ttid === undefined) {
-            resp.status(400).json({ error: "invalid uuid" }).end();
-        }
-        try {
-            const result = await getConnection(async (db) => {
-                return db.query(`
-            UPDATE 
-                tutor_times
-            SET
-                day_of = $1,
-                start_time = $2
-            WHERE
-                tutor_id = $3 AND
-                id = $4;`,
-                    [
-                        date.toISOString().split('T')[0],
-                        date.toISOString().split('T')[1],
-                        userid,
-                        ttid
-                    ])
-            });
-            if (result.rowCount === 0) {
-                resp.status(404).json({ error: `no rows found with id ${req.params.ttid}` }).end();
-            } else {
-                resp.status(200).end();
-            }
-        } catch (x) {
-            console.log(`PATCH /api/tutors/:userid failed to query db ${x}`)
-            resp.status(500).json({ error: `could not update database` }).end();
-        }
-    })
-    // POST /api/tutors/:userid
-    // QUERY PARAMS:
-    // id: id of the times
     //
-    // Adds tutor time to database 
-    .post(async (req: TypedRequestBody<TutorPOSTQuery>, resp: TypedResponse<TutorPOSTResponse>, _: NextFunction) => {
-        const date: Date =
-            new Date((
-                req.body.when ??
-                "NOT A DATE"
-            ));
-        if (Number.isNaN(date.valueOf())) {
-            resp.status(400).end();
-            return;
-        }
-        const userid = makeUuid(req.params.userid);
-        if (userid === undefined) {
-            resp.status(400).json({ error: "invalid uuid" }).end();
-        }
-        try {
-            const result: string | undefined = await getConnection(async (db) => {
-                const id = makeUuid(v4());
-                const good = await db.query(`
-                INSERT INTO
-                    tutor_times
-                    (
-                        tutor_id,
-                        id,
-                        day_of, 
-                        start_time
-                    )
-                VALUES
-                    (
-                        $1,
-                        $2,
-                        $3,
-                        $4
-                    );`,
-                    [
-                        req.params.userid,
-                        id,
-                        date.toISOString().split('T')[0],
-                        date.toISOString().split('T')[1],
-                    ]);
-                if (good.rowCount > 0) {
-                    return id;
-                } else { return undefined; }
+    //
+    // Updates the tutor appointments in the database
+    .patch(
+        async (
+            req: TypedRequestBody<UpdateTutor>,
+            res: TypedResponse<{ id: string }>,
+            _: NextFunction
+        ) => {
+            // Update subjects
+            const newSubjects = req.body.subjects;
+            const errors: string[] = [];
+
+            const user = await _getFullTutor(req.params.id);
+            if (user == null) {
+                res.status(500).json({
+                    error: `Error retrieving tutor ${req.params.id}`,
+                });
+                return;
+            }
+
+            //SUBJECTS
+            const currentSubjects = user.subjects ?? [];
+            const subjectsToAdd: string[] = [];
+            const subjectsToRemove: string[] = [];
+
+            newSubjects.forEach((subject) => {
+                if (!currentSubjects.includes(subject)) {
+                    subjectsToAdd.push(subject);
+                }
             });
 
-            if (result === undefined) {
-                resp.status(400).json({ error: "no rows inserted" }).end()
+            currentSubjects.forEach((subject) => {
+                if (!newSubjects.includes(subject)) {
+                    subjectsToRemove.push(subject);
+                }
+            });
+
+            subjectsToAdd.forEach(async (subject) => {
+                try {
+                    await insertTutorSubject(user.id, subject);
+                } catch {
+                    errors.push(`Error adding subject ${subject}`);
+                }
+            });
+
+            subjectsToRemove.forEach(async (subject) => {
+                try {
+                    await deleteTutorSubject(user.id, subject);
+                } catch {
+                    errors.push(`Error removing subject ${subject}`);
+                }
+            });
+
+            // TIMES
+            try {
+                const deletedTimes = await deleteAllTutorTimes(user.id);
+            } catch {
+                errors.push('Error clearing previous tutor times');
             }
-            else {
-                resp.json({ id: result }).end()
+
+            if (errors.length > 0) {
+                res.status(201).json({
+                    error: `Tutor created with errors: \n${errors.join('\n')}`,
+                });
+                return;
             }
+
+            req.body.times.forEach(async (tutorTime) => {
+                try {
+                    const timeId = genUuid();
+                    await insertTutorTime(
+                        req.params.id,
+                        timeId,
+                        tutorTime.datetime,
+                        tutorTime.durationHours
+                    );
+                } catch {
+                    errors.push(
+                        `Error inserting tutor time: ${tutorTime.datetime.toLocaleDateString()} ${
+                            tutorTime.durationHours
+                        }`
+                    );
+                }
+            });
+
+            if (errors.length > 0) {
+                res.status(201).json({
+                    error: `Tutor created with errors: \n${errors.join('\n')}`,
+                });
+                return;
+            }
+
+            const updatedUser = await _getFullTutor(req.params.id);
+            if (!updatedUser) {
+                res.status(500).json({ error: `Internal Server Error` });
+                console.log(
+                    `Error retrieving user after update: ${req.params.id}`
+                );
+                return;
+            }
+            res.status(200).json(updatedUser);
         }
-        catch (x) {
-            console.log(`POST /api/tutor/:id could not execute query ${x}`);
-            resp.status(500).json({ error: "internal sql error" }).end()
+    )
+    .delete(async (req: Request, res: Response, _: NextFunction) => {
+        try {
+            try {
+                await deleteAllTutorTimes(req.params.id);
+            } catch {
+                res.status(500).json({
+                    error: 'Error deleting tutor: Tutor Times Error',
+                });
+                return;
+            }
+
+            try {
+                await deleteAllSubjectsForTutor(req.params.id);
+            } catch {
+                res.status(500).json({
+                    error: 'Error deleting tutor: Subjects Error',
+                });
+                return;
+            }
+
+            const tutorResult = await deleteTutor(req.params.id);
+            if (!tutorResult) {
+                res.status(500).json({ error: 'Error deleting tutor' });
+                return;
+            }
+            res.status(200).json({ id: tutorResult });
+        } catch {
+            res.status(500).json({ error: `Internal Server Error` });
+            return;
+        }
+    });
+
+// Begin tutor subjects
+tutorsRouter
+    .route('/:userId/subjects/')
+    .all(
+        async (
+            req: Request,
+            res: TypedResponse<string[]>,
+            next: NextFunction
+        ) => {
+            if (!validateUuid(req.params.userId)) {
+                res.status(400);
+                res.json({ error: 'Invalid User UUID' });
+                return;
+            }
+
+            next();
+        },
+        authenticate
+    )
+    .get(async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const result = await selectSubjectsByTutor(req.params.userId);
+            res.status(200).json(result);
+        } catch {
+            res.status(500).json({
+                error: `Error retrieving subjects for tutor ${req.params.userId}`,
+            });
         }
     })
-    // DELETE /api/tutors/:userid
+    .post(
+        async (
+            req: TypedRequestBody<{ subjectId: UUID }>,
+            res: TypedResponse<TutorSubjectRelation>,
+            next: NextFunction
+        ) => {
+            const subjectId = makeUuid(req.body.subjectId);
+            if (!subjectId) {
+                res.status(400).json({
+                    error: `'${req.body.subjectId}' is not a valid UUID`,
+                });
+            }
+
+            try {
+                if (!(await selectSubjectById(req.body.subjectId))) {
+                    res.status(404).json({
+                        error: `ID ${req.body.subjectId} not associated with subject`,
+                    });
+                    return;
+                }
+            } catch {
+                res.status(500).json({ error: `Internal Server Error` });
+                return;
+            }
+
+            try {
+                const result = await insertTutorSubject(
+                    req.params.userId,
+                    req.body.subjectId
+                );
+                if (!result) {
+                    res.status(500).json({
+                        error: `Error adding subject ${req.body.subjectId} to tutor ${req.params.userId}`,
+                    });
+                    return;
+                }
+                res.status(201).json(result);
+            } catch {
+                res.status(500).json({ error: 'Internal Server Error' });
+            }
+        }
+    );
+
+tutorsRouter
+    .route('/:userId/subjects/:subjectId')
+    .all(async (req: Request, res: Response, next: NextFunction) => {
+        if (!validateUuid(req.params.userId)) {
+            res.status(400);
+            res.json({ error: 'Invalid User UUID' });
+            return;
+        }
+
+        if (!validateUuid(req.params.subjectId)) {
+            res.status(400);
+            res.json({ error: 'Invalid Subject UUID' });
+            return;
+        }
+        next();
+    }, authenticate)
+    .delete(
+        async (
+            req: Request,
+            res: TypedResponse<TutorSubjectRelation>,
+            next: NextFunction
+        ) => {
+            try {
+                const result = await deleteTutorSubject(
+                    req.params.userId,
+                    req.params.subjectId
+                );
+                if (!result) {
+                    res.status(500).json({
+                        error: `Error deleting subject ${req.params.subjectId} from tutor ${req.params.userId}`,
+                    });
+                    return;
+                }
+                res.status(200).json(result);
+            } catch {
+                res.status(500).json({ error: 'Internal Server Error' });
+            }
+        }
+    );
+
+tutorsRouter
+    .route('/:userId/times')
+    .all(async (req: Request, res: Response, next: NextFunction) => {
+        if (!validateUuid(req.params.userId)) {
+            res.status(400);
+            res.json({ error: 'Invalid User UUID' });
+            return;
+        }
+
+        next();
+    }, authenticate)
+    .get(
+        async (
+            req: Request,
+            res: TypedResponse<TutorTime[]>,
+            next: NextFunction
+        ) => {
+            try {
+                const result = await selectTimesByTutor(req.params.userId);
+                res.status(200).json(result);
+            } catch {
+                res.status(500).json({
+                    error: `Error retrieving tutor times for user ${req.params.userId}`,
+                });
+            }
+        }
+    )
+    .post(
+        async (
+            req: TypedRequestBody<NewTutorTime>,
+            res: TypedResponse<TutorTime>,
+            next: NextFunction
+        ) => {
+            const timeId = genUuid();
+            try {
+                const result = await insertTutorTime(
+                    req.params.userId,
+                    timeId,
+                    req.body.datetime,
+                    req.body.durationHours
+                );
+                if (!result) {
+                    res.status(500).json({
+                        error: `Error creating tutor time for user ${req.params.userId}`,
+                    });
+                    return;
+                }
+
+                res.status(201).json(result);
+            } catch {
+                res.status(500).json({ error: `Internal Server Error` });
+            }
+        }
+    );
+
+tutorsRouter
+    .route('/:userId/times/:timeId')
+    .all(async (req: Request, res: Response, next: NextFunction) => {
+        if (!validateUuid(req.params.userId)) {
+            res.status(400);
+            res.json({ error: 'Invalid User UUID' });
+            return;
+        }
+
+        if (!validateUuid(req.params.timeId)) {
+            res.status(400);
+            res.json({ error: 'Invalid Tutor Time UUID' });
+            return;
+        }
+        next();
+    }, authenticate)
     // QUERY PARAMS:
     // id: id of the time slot
     //
     // Deletes tutor time from database
-    .delete(async (req: TypedRequestBody<TutorDELETEQuery>, resp: Response, _: NextFunction) => {
-        const userid = makeUuid(req.params.userid);
-        const ttid = makeUuid(req.body.id);
-        if (userid === undefined || ttid === undefined) {
-            resp.status(400).json({ error: "invalid uuid" }).end();
-        }
-        try {
-            const result = await getConnection(async (db) => {
-                return db.query(`
-                DELETE FROM 
-                    tutor_times
-                WHERE
-                    id = $1 AND
-                    tutor_id = $2;`,
-                    [
-                        userid,
-                        ttid,
-                    ]);
-            });
-            if (result.rowCount > 0) {
-                resp.status(200).end()
+    .delete(
+        async (
+            req: TypedRequestBody<TutorDELETEQuery>,
+            res: Response,
+            _: NextFunction
+        ) => {
+            try {
+                const result = await deleteTutorTime(
+                    req.params.userId,
+                    req.params.timeId
+                );
+                if (!result) {
+                    res.status(404).json({
+                        error: `Error deleting tutor time ${req.params.timeId} from user ${req.params.userId}`,
+                    });
+                }
+                res.status(200).json({
+                    tutorId: req.params.userId,
+                    timeId: req.params.timeId,
+                });
+                return;
+            } catch (x) {
+                console.log(`POST /api/tutor/:id failed to do query ${x}`);
+                res.status(500)
+                    .json({ error: 'could not execute query' })
+                    .end();
             }
-            else {
-                resp.status(404).json({ error: "no tutor time found" }).end()
-            }
-        } catch (x) {
-            console.log(`POST /api/tutor/:id failed to do query ${x}`);
-            resp.status(500).json({ error: "could not execute query" }).end()
         }
-    });
+    )
+    .patch(
+        async (
+            req: TypedRequestBody<UpdateTutorTime>,
+            res: TypedResponse<TutorTime>,
+            next: NextFunction
+        ) => {
+            try {
+                const oldTime = await selectTutorTime(req.params.timeId);
+
+                if (!oldTime) {
+                    res.status(404).json({
+                        error: `Tutor time ${req.params.timeId} not found`,
+                    });
+                    return;
+                }
+
+                const newTime: UpdateTutorTime = {
+                    datetime: req.body.datetime ?? oldTime.datetime,
+                    durationHours:
+                        req.body.durationHours ?? oldTime.durationHours,
+                };
+
+                const result = await updateTutorTime(
+                    req.params.timeId,
+                    newTime
+                );
+
+                if (!result) {
+                    res.status(500).json({
+                        error: `Error updating Tutor Time ${req.params.timeId}`,
+                    });
+                    return;
+                }
+
+                res.status(201).json(result);
+            } catch {
+                res.status(500).json({ error: 'Internal Server Error' });
+            }
+        }
+    );

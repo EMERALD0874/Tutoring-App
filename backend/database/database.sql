@@ -13,11 +13,26 @@ CREATE TABLE tutors (
     id UUID PRIMARY KEY REFERENCES users(id)
 );
 
+CREATE TABLE departments (
+    name TEXT PRIMARY KEY
+);
+
+CREATE TABLE subjects (
+    id UUID PRIMARY KEY,
+    name TEXT,
+    department TEXT REFERENCES departments(name)
+);
+
+CREATE TABLE tutors_subjects (
+    tutor_id UUID REFERENCES tutors(id) ON DELETE CASCADE,
+    subject_id UUID REFERENCES subjects(id)
+);
+
 CREATE TABLE tutor_times (
     tutor_id UUID REFERENCES tutors(id),
     id UUID PRIMARY KEY,
-    day_of DATE,
-    start_time TIME
+    date_time TIMESTAMP,
+    duration_hours FLOAT(2)
 );
 
 CREATE TABLE sessions (
@@ -25,15 +40,6 @@ CREATE TABLE sessions (
     student_id UUID REFERENCES users(id),
     tutor_id UUID REFERENCES tutors(id),
     appointment UUID REFERENCES tutor_times(id)
-);
-
-CREATE TABLE departments (
-    name TEXT PRIMARY KEY
-);
-
-CREATE TABLE subjects (
-    name TEXT PRIMARY KEY,
-    department TEXT REFERENCES departments(name)
 );
 
 CREATE TABLE auth_tokens ( 

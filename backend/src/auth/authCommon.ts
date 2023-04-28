@@ -29,7 +29,7 @@ const verifyToken = async (req: Request): Promise<User | undefined> => {
     if (rawToken === undefined) {
         throw Error('Missing Authorization Token');
     }
-    
+
     if (rawToken.indexOf('Bearer') == -1) {
         throw Error('Invalid Token Format');
     }
@@ -105,7 +105,7 @@ export const authenticate = async (
                     break;
                 case 'Invalid Token Format':
                     res.status(400);
-                    res.json({ error: 'Invalid Token Format' })
+                    res.json({ error: 'Invalid Token Format' });
                     break;
                 case 'Token is expired':
                 // Maybe we need to prompt to refresh the token? I don't know
