@@ -187,7 +187,7 @@ tutorsRouter
             } catch (x) {
                 console.log(`GET /api/tutors/:userid failed to query db ${x}`);
                 res.status(500)
-                    .json({ error: `could not scrape database` })
+                    .json({ error: `Internal Server Error` })
                     .end();
             }
         }
