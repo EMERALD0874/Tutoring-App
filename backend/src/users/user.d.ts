@@ -2,19 +2,11 @@ export interface User {
     id: string;
     first_name: string;
     last_name: string;
-    about: string;
-    email: string;
-    birthdate: Date;
-}
-
-export interface CreateUser {
-    first_name: string;
-    last_name: string;
-    about: string;
-    email: string;
-    birthdate: Date;
     username: string;
-    password: string;
+    about: string;
+    email: string;
+    birthdate: Date;
+    password_hash: string;
 }
 
 export interface UpdateUser {
@@ -24,5 +16,14 @@ export interface UpdateUser {
     email?: string;
     birthdate?: Date;
     username?: string;
-    //password?: string // This should be change only with auth routes
+}
+
+export interface NewUser {
+    id: string;
+    first_name: string;
+    last_name: string;
+    email: string;
+    birthdate: Date;
+    username: string;
+    password_hash: string;
 }

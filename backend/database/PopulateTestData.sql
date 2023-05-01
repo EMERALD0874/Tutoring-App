@@ -1,6 +1,6 @@
-INSERT INTO departments
+insert into departments
 	(name) 
-VALUES
+values
 	('Engineering'),
 	('Computer Science'),
 	('Mathematics'),
@@ -9,27 +9,27 @@ VALUES
 	('Economics'),
 	('Philosophy');
 	
-INSERT INTO subjects
-	(name, department)
-VALUES
-	('ECS1100', 'Engineering'),
-	('ENGR2250', 'Engineering'),
-	('CS3300', 'Computer Science'),
-	('CS2317', 'Computer Science'),
-	('MATH2020', 'Mathematics'),
-	('MATH2120', 'Mathematics'),
-	('ART1123', 'Music and Arts'),
-	('MUSC2200', 'Music and Arts'),
-	('HIST2300', 'History'),
-	('HIST3314', 'History'),
-	('ECON1010', 'Economics'),
-	('ECON2230', 'Economics'),
-	('PHIL2337', 'Philosophy'),
-	('PHIL2423', 'Philosophy');
+insert into subjects
+	(id, name, department)
+values
+	('d786a168-2ca3-4ada-8298-ef1bba7db754', 'ECS1100', 'Engineering'),
+	('1e4efb4d-13f6-4a13-b304-a67fefd66124', 'ENGR2250', 'Engineering'),
+	('74b3bff1-6bb6-4dad-9b59-ce440e9c4d08', 'CS3300', 'Computer Science'),
+	('74b3bff1-6bb6-4dad-9b59-ce440e9c4d09', 'CS2317', 'Computer Science'),
+	('74b3bff1-6bb6-4dad-9b59-ce440e9c4d00', 'MATH2020', 'Mathematics'),
+	('74b3bff1-6bb6-4dad-9b59-ce440e9c4d01', 'MATH2120', 'Mathematics'),
+	('74b3bff1-6bb6-4dad-9b59-ce440e9c4d02', 'ART1123', 'Music and Arts'),
+	('74b3bff1-6bb6-4dad-9b59-ce440e9c4d03', 'MUSC2200', 'Music and Arts'),
+	('74b3bff1-6bb6-4dad-9b59-ce440e9c4d04', 'HIST2300', 'History'),
+	('74b3bff1-6bb6-4dad-9b59-ce440e9c4d05', 'HIST3314', 'History'),
+	('74b3bff1-6bb6-4dad-9b59-ce440e9c4d06', 'ECON1010', 'Economics'),
+	('74b3bff1-6bb6-4dad-9b59-ce440e9c4d07', 'ECON2230', 'Economics'),
+	('d786a168-2ca3-4ada-8298-ef1bba7db755', 'PHIL2337', 'Philosophy'),
+	('d786a168-2ca3-4ada-8298-ef1bba7db753', 'PHIL2423', 'Philosophy');
 
-INSERT INTO users
+insert into users
 	(id, first_name, last_name, about, email, birthdate)
-VALUES
+values
 	('4905cbf3-29b6-451d-a135-3c6808ecc17f', 'Adem', 'Odza', 'CS Student 1', 'adem@utdallas.edu', '2001-05-11'),
 	('efc3c96e-584a-4312-bf2d-7e89fdece0cf', 'Saul', 'Goodman', 'Philosophy student 1', 'jm@utdallas.edu', '2002-07-19'),
 	('80d4ec4b-9037-4496-8b18-96d4f4f50073', 'TestUser1', 'Dummy', 'Engineering student 1', 'test1@utdallas.edu', '2003-10-27'),
@@ -43,3 +43,13 @@ VALUES
 	('4905cbf3-29b6-451d-a135-3c6808ecc17f'),
 	('efc3c96e-584a-4312-bf2d-7e89fdece0cf'),
 	('39e316a1-ba14-4eb8-b560-5164a40a701c');
+
+INSERT INTO tutors_subjects 
+	(tutor_id, subject_id)
+VALUES 
+	('4905cbf3-29b6-451d-a135-3c6808ecc17f', '74b3bff1-6bb6-4dad-9b59-ce440e9c4d08'),
+	('4905cbf3-29b6-451d-a135-3c6808ecc17f', '74b3bff1-6bb6-4dad-9b59-ce440e9c4d04'),
+	('4905cbf3-29b6-451d-a135-3c6808ecc17f', 'd786a168-2ca3-4ada-8298-ef1bba7db753'),
+	('efc3c96e-584a-4312-bf2d-7e89fdece0cf', '74b3bff1-6bb6-4dad-9b59-ce440e9c4d08'),
+	('efc3c96e-584a-4312-bf2d-7e89fdece0cf', 'd786a168-2ca3-4ada-8298-ef1bba7db754'),
+	('39e316a1-ba14-4eb8-b560-5164a40a701c', '74b3bff1-6bb6-4dad-9b59-ce440e9c4d04');

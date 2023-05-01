@@ -6,12 +6,14 @@ import {
 } from './departmentDIs';
 import { TypedRequestBody, TypedResponse, Alert } from '../types';
 import { Department } from './departments';
+import { validate as validateUuid } from 'uuid';
+import { authenticate } from '../auth/authCommon';
 
 export const departmentsRouter = Router();
 
 departmentsRouter
     .route('/')
-    .all((req: Request, res: Response, next: NextFunction) => {
+    .all(authenticate, (req: Request, res: Response, next: NextFunction) => {
         next();
     })
     .get(async (req: Request, res: Response, next: NextFunction) => {
@@ -47,9 +49,17 @@ departmentsRouter
             }
         }
     );
-    
+
 departmentsRouter
     .route('/:id')
+    .all((req: Request, res: Response, next: NextFunction) => {
+        if (!validateUuid(req.params.id)) {
+            res.status(400);
+            res.json({ error: 'Invalid UUID' });
+            return;
+        }
+        next();
+    }, authenticate)
     .delete(
         async (
             req: TypedRequestBody<Department>,
