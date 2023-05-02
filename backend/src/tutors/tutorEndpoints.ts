@@ -45,7 +45,7 @@ export const tutorsRouter = Router();
 // General tutor endpoints
 tutorsRouter
     .route('/')
-    .all(authenticate, (req: Request, res: Response, next: NextFunction) => {
+    .all((req: Request, res: Response, next: NextFunction) => {
         next();
     })
     .get(
@@ -72,6 +72,7 @@ tutorsRouter
         }
     )
     .post(
+        authenticate,
         async (
             req: TypedRequestBody<NewTutor>,
             res: TypedResponse<TutorDetails>,
@@ -170,7 +171,7 @@ tutorsRouter
         }
 
         next();
-    }, authenticate)
+    })
     // GET /api/tutors/:userid
     // Returns an existing user if the tutor exists, along with avail times.
     .get(
@@ -186,9 +187,7 @@ tutorsRouter
                 res.status(200).json(result);
             } catch (x) {
                 console.log(`GET /api/tutors/:userid failed to query db ${x}`);
-                res.status(500)
-                    .json({ error: `Internal Server Error` })
-                    .end();
+                res.status(500).json({ error: `Internal Server Error` }).end();
             }
         }
     )
@@ -201,6 +200,7 @@ tutorsRouter
     //
     // Updates the tutor appointments in the database
     .patch(
+        authenticate,
         async (
             req: TypedRequestBody<UpdateTutor>,
             res: TypedResponse<{ id: string }>,
@@ -301,7 +301,7 @@ tutorsRouter
             res.status(200).json(updatedUser);
         }
     )
-    .delete(async (req: Request, res: Response, _: NextFunction) => {
+    .delete(authenticate, async (req: Request, res: Response, _: NextFunction) => {
         try {
             try {
                 await deleteAllTutorTimes(req.params.id);
@@ -349,8 +349,7 @@ tutorsRouter
             }
 
             next();
-        },
-        authenticate
+        }
     )
     .get(async (req: Request, res: Response, next: NextFunction) => {
         try {
@@ -363,6 +362,7 @@ tutorsRouter
         }
     })
     .post(
+        authenticate,
         async (
             req: TypedRequestBody<{ subjectId: UUID }>,
             res: TypedResponse<TutorSubjectRelation>,
@@ -455,8 +455,9 @@ tutorsRouter
         }
 
         next();
-    }, authenticate)
+    })
     .get(
+        authenticate,
         async (
             req: Request,
             res: TypedResponse<TutorTime[]>,
@@ -473,6 +474,7 @@ tutorsRouter
         }
     )
     .post(
+        authenticate,
         async (
             req: TypedRequestBody<NewTutorTime>,
             res: TypedResponse<TutorTime>,
