@@ -187,7 +187,8 @@ tutorsRouter
                 res.status(200).json(result);
             } catch (x) {
                 console.log(`GET /api/tutors/:userid failed to query db ${x}`);
-                res.status(500).json({ error: `Internal Server Error` }).end();
+                res.status(500).json({ error: `Internal Server Error` });
+                return;
             }
         }
     )
