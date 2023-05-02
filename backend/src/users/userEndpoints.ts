@@ -11,7 +11,6 @@ export const usersRouter = Router();
 usersRouter
     .route('/')
     .all(
-        authenticate,
         async (req: Request, res: Response, next: NextFunction) => {
             next();
         }
@@ -30,7 +29,7 @@ usersRouter
             return;
         }
         next();
-    }, authenticate)
+    })
     .get(async (req: Request, res: Response, next: NextFunction) => {
         const user = await selectUserByID(req.params.id);
 
@@ -42,7 +41,7 @@ usersRouter
             res.json(user);
         }
     })
-    .delete(async (req: Request, res: Response, next: NextFunction) => {
+    .delete(authenticate, async (req: Request, res: Response, next: NextFunction) => {
         try {
             const deletedId = await deleteUser(req.params.id);
 
@@ -59,6 +58,7 @@ usersRouter
         }
     })
     .patch(
+        authenticate,
         async (
             req: TypedRequestBody<UpdateUser>,
             res: TypedResponse<User | Alert>,

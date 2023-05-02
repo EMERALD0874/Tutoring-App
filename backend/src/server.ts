@@ -7,7 +7,7 @@ import { host, port } from './common';
 import { departmentsRouter } from './departments/departmentsEndpoints';
 import { subjectsRouter } from './subjects/subjectsEndpoints';
 import { authRouter } from './auth/authEndpoints';
-
+import { profilePictureRouter } from './profile-pictures/profile-picturesEndpoint';
 export const app = express();
 app.use(jsonParser());
 
@@ -19,7 +19,7 @@ apiRouter.use('/users', usersRouter);
 apiRouter.use('/departments', departmentsRouter);
 apiRouter.use('/subjects', subjectsRouter);
 apiRouter.use('/sessions', sessionsRouter);
-
+apiRouter.use('/profile-pictures', profilePictureRouter);
 apiRouter.get('/', (req: Request, res: Response) => {
     res.send('Hello world!');
 });
