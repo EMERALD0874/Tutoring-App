@@ -8,12 +8,25 @@ import {
 import { ProfilePicture } from './profile-pictures';
 import { validate as validateUuid } from 'uuid';
 import { authenticate } from '../auth/authCommon';
-import { Multer } from 'multer';
-const multer = require('multer');
+import multer from 'multer';
+import { filter } from 'lodash';
 
 export const profilePictureRouter = Router();
 // Memory storage is used because we are saving to the database, not the file system
-const upload: Multer = multer({ storage: multer.memoryStorage() });
+const upload = multer({
+    storage: multer.memoryStorage(),
+    fileFilter: (request, file, callback) => {
+        if (
+            file.mimetype == 'image/jpeg' ||
+            file.mimetype == 'image/jpg' ||
+            file.mimetype == 'image/png'
+        ) {
+            callback(null, true);
+        } else {
+            callback(null, false);
+        }
+    },
+});
 
 profilePictureRouter
     .route('/:id')
@@ -34,7 +47,7 @@ profilePictureRouter
                     'Could not find profile_picture with id=' + req.params.id,
             });
         }
-        res.set('Content-Type', 'image/jpeg');
+        res.set('Content-Type', profile_picture.file_type);
         res.status(200);
         return res.end(profile_picture.profile_picture);
     })
@@ -62,10 +75,16 @@ profilePictureRouter
             }
 
             // Insert new profile picture
+            const file_type = req.file?.mimetype;
+            if (file_type === undefined) {
+                res.status(404);
+                return res.json({ error: 'Error reading file mimetype' });
+            }
             const pfp: ProfilePicture = {
                 id: genUuid(),
                 user_id: req.params.id,
                 profile_picture: req.file?.buffer as Buffer,
+                file_type: file_type,
             };
             const insert = await createProfilePicture(pfp);
             if (!insert) {

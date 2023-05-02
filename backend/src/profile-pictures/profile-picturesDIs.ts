@@ -9,7 +9,8 @@ export const selectProfilePicture = async (
         SELECT
             id,
             user_id,
-            profile_picture
+            profile_picture,
+            file_type
         FROM
             profile_pictures
         WHERE
@@ -31,16 +32,22 @@ export const createProfilePicture = async (
         INSERT INTO profile_pictures (
             id,
             user_id,
-            profile_picture
+            profile_picture,
+            file_type
         )
-        VALUES ($1, $2, $3)
+        VALUES ($1, $2, $3, $4)
         RETURNING
             id
         ;
     `;
     const result: QueryResult<{ id: UUID }> = await getConnection<QueryResult>(
         (db) => {
-            return db.query(sql, [pfp.id, pfp.user_id, pfp.profile_picture]);
+            return db.query(sql, [
+                pfp.id,
+                pfp.user_id,
+                pfp.profile_picture,
+                pfp.file_type,
+            ]);
         }
     );
     if (result.rowCount === 0) {

@@ -51,5 +51,6 @@ CREATE TABLE auth_tokens (
 CREATE TABLE profile_pictures (
     id UUID PRIMARY KEY,
     user_id UUID REFERENCES users(id),
-    profile_picture BYTEA
+    profile_picture BYTEA,
+    file_type TEXT
 );
