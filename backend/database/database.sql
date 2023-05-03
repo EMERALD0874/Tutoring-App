@@ -47,3 +47,10 @@ CREATE TABLE auth_tokens (
     token TEXT NOT NULL,
     expires TIMESTAMP NOT NULL
 );
+
+CREATE TABLE profile_pictures (
+    id UUID PRIMARY KEY,
+    user_id UUID REFERENCES users(id),
+    profile_picture BYTEA,
+    file_type TEXT
+);
