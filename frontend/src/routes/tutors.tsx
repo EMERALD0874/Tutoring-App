@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { FaChevronRight } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
-import { getTutors, isLoggedIn } from "../api";
+import { getNearestTutorTime, getTutors, isLoggedIn } from "../api";
 
 export default function Tutors() {
   const [tutors, setTutors] = useState([] as any[]);
@@ -44,6 +44,29 @@ interface TutorProps {
 }
 
 function TutorElement({ id, name, about }: TutorProps) {
+  const [time, setTime] = useState<string | undefined>(undefined);
+  useEffect(() => {
+    getNearestTutorTime(id).then((res) => {
+      // AVAILABLE AT 5:00 PM ON 5/20/2022
+      setTime(
+        res?.datetime
+          ? `AVAILABLE AT ${
+              new Date(res.datetime).toLocaleTimeString([], {
+                hour: "numeric",
+                minute: "2-digit",
+              }) +
+              " ON " +
+              new Date(res.datetime).toLocaleDateString([], {
+                month: "numeric",
+                day: "numeric",
+                year: "numeric",
+              })
+            }`
+          : "NO AVAILABLE TIMES"
+      );
+    });
+  }, []);
+
   return (
     <TutorContainer to={isLoggedIn() ? `/tutors/${id}` : "/login"}>
       <img
@@ -70,7 +93,7 @@ function TutorElement({ id, name, about }: TutorProps) {
             fontWeight: "normal",
           }}
         >
-          AVAILABLE AT 9 PM
+          {time}
         </h4>
       </div>
       <FaChevronRight
