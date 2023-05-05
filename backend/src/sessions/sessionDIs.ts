@@ -165,3 +165,19 @@ export const updateSession = async (
 
     return result.rows[0];
 };
+
+export const deleteOldSessions = async (): Promise<number> => {
+    const sql = `
+        WITH times AS (SELECT * FROM tutor_times WHERE (date_time + interval '1 hour') < (now() at time zone 'utc'))
+        DELETE FROM 
+            sessions 
+        WHERE 
+            appointment IN (SELECT id FROM times);
+    `;
+
+    const result: QueryResult<{}> = await getConnection((conn) => {
+        return conn.query(sql, []);
+    });
+
+    return result.rowCount;
+};
