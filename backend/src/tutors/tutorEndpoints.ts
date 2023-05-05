@@ -522,6 +522,22 @@ tutorsRouter
         }
         next();
     }, authenticate)
+    .get(
+        async (
+            req: Request,
+            res: TypedResponse<TutorTime>,
+            next: NextFunction
+        ) => {
+            const time = await selectTutorTime(req.params.timeId);
+            if (!time) {
+                res.status(404);
+                res.json({ error: `Tutor Time ${req.params.id} not found.` });
+                return;
+            }
+            res.status(200);
+            res.json(time);
+        }
+    )
     // QUERY PARAMS:
     // id: id of the time slot
     //
@@ -549,9 +565,9 @@ tutorsRouter
                 return;
             } catch (x) {
                 console.log(`POST /api/tutor/:id failed to do query ${x}`);
-                res.status(500)
-                    .json({ error: 'could not execute query' })
-                    .end();
+                res.status(500);
+                res.json({ error: 'Internal Server Error' });
+                return;
             }
         }
     )
