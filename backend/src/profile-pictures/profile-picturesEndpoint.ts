@@ -30,7 +30,7 @@ const upload = multer({
 
 profilePictureRouter
     .route('/:id')
-    .all(authenticate, (req: Request, res: Response, next: NextFunction) => {
+    .all((req: Request, res: Response, next: NextFunction) => {
         if (!validateUuid(req.params.id)) {
             res.status(400);
             res.json({ error: 'Invalid UUID' });
@@ -52,6 +52,7 @@ profilePictureRouter
         return res.end(profile_picture.profile_picture);
     })
     .post(
+        authenticate,
         upload.single('file'), // 'file' is the field name that will be used in the HTML upload button.
         async (req: Request, res: Response, next: NextFunction) => {
             const image = req.file;

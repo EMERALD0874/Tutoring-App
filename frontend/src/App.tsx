@@ -5,16 +5,25 @@ import {
   FaCalendar,
   FaInfoCircle,
   FaQuestionCircle,
+  FaSignInAlt,
 } from "react-icons/fa";
 import "./App.css";
-import { Outlet } from "react-router-dom";
+import { Link, Outlet, useLocation } from "react-router-dom";
+import { isLoggedIn } from "./api";
+import { useEffect, useState } from "react";
 
 function App() {
+  const [loggedIn, setLoggedIn] = useState(false);
+  const location = useLocation();
+  useEffect(() => {
+    setLoggedIn(isLoggedIn());
+  }, [location.key]);
+
   return (
     <AppContainer>
       <Navbar>
-        <a
-          href="/"
+        <Link
+          to="/"
           style={{
             display: "flex",
             alignItems: "center",
@@ -36,8 +45,8 @@ function App() {
           >
             DOCERE
           </h1>
-        </a>
-        <div
+        </Link>
+        {/* <div
           style={{
             width: "100%",
             height: "60%",
@@ -57,21 +66,49 @@ function App() {
           >
             Search subjects...
           </i>
-        </div>
-        <img
-          src="https://media.tenor.com/1y8zDc-ll-EAAAAd/3d-saul-saul-goodman.gif"
-          alt="profile"
+        </div> */}
+        <Link
+          to={loggedIn ? "/profile" : "/login"}
           style={{
             width: 50,
             height: 50,
             borderRadius: 9999,
+            marginLeft: "auto",
             marginRight: 20,
+            backgroundColor: "#31572c",
+            display: "flex",
+            overflow: "hidden",
+            color: "#fff",
           }}
-        />
+        >
+          {loggedIn ? (
+            <img
+              src={`${
+                process.env.REACT_APP_API_URL
+              }/api/profile-pictures/${localStorage.getItem("userId")}`}
+              onError={(e) => {
+                (e.target as HTMLImageElement).src =
+                  "https://i.imgur.com/AIkx1b2.png";
+              }}
+              alt="profile"
+              style={{
+                width: "100%",
+                height: "100%",
+              }}
+            />
+          ) : (
+            <FaSignInAlt
+              style={{
+                margin: "auto",
+              }}
+              size={24}
+            />
+          )}
+        </Link>
       </Navbar>
       <ContentContainer>
         <Sidebar>
-          <SidebarItem href="/subjects">
+          <SidebarItem to={loggedIn ? "/subjects" : "/login"}>
             <FaBook size={30} />
             <span
               style={{
@@ -81,7 +118,7 @@ function App() {
               Subjects
             </span>
           </SidebarItem>
-          <SidebarItem href="/calendar">
+          <SidebarItem to={loggedIn ? "/calendar" : "/login"}>
             <FaCalendar size={30} />
             <span
               style={{
@@ -91,7 +128,7 @@ function App() {
               Calendar
             </span>
           </SidebarItem>
-          <SidebarItem href="/about">
+          <SidebarItem to="/about">
             <FaInfoCircle size={30} />
             <span
               style={{
@@ -101,7 +138,7 @@ function App() {
               About
             </span>
           </SidebarItem>
-          <SidebarItem href="/help">
+          <SidebarItem to="/help">
             <FaQuestionCircle size={30} />
             <span
               style={{
@@ -154,7 +191,7 @@ const Sidebar = styled.div`
   flex-direction: column;
 `;
 
-const SidebarItem = styled.a`
+const SidebarItem = styled(Link)`
   width: 100%;
   height: 100px;
   display: flex;

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { FaChevronRight } from "react-icons/fa";
+import { Link } from "react-router-dom";
 import styled from "styled-components";
 import { getDepartments, getSubjects } from "../api";
 
@@ -36,7 +37,7 @@ export default function Subjects() {
               .sort((a: any, b: any) => a.name.localeCompare(b.name))
               .filter((s: any) => s.department === d.name)
               .map((s: any) => (
-                <SubjectElement id={s.name} key={s.name} name={`${s.name}`} />
+                <SubjectElement id={s.id} key={s.id} name={s.name} />
               ))}
           </div>
         ))}
@@ -49,9 +50,9 @@ interface SubjectProps {
   name: string;
 }
 
-function SubjectElement({ name }: SubjectProps) {
+function SubjectElement({ id, name }: SubjectProps) {
   return (
-    <SubjectContainer>
+    <SubjectContainer to={`/subjects/${id}`}>
       <h2>{name}</h2>
       <FaChevronRight
         style={{
@@ -69,7 +70,7 @@ const DepartmentList = styled.div`
   min-height: 100%;
 `;
 
-const SubjectContainer = styled.div`
+const SubjectContainer = styled(Link)`
   width: 100%;
   padding: 1rem;
   background-color: #fff;
@@ -78,4 +79,6 @@ const SubjectContainer = styled.div`
   display: flex;
   flex-direction: row;
   align-items: center;
+  color: #000;
+  text-decoration: none;
 `;

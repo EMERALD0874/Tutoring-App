@@ -13,14 +13,11 @@ export const app = express();
 
 var corsOptions: CorsOptions = {
     origin: '*',
-    optionsSuccessStatus: 200
-  }
+    optionsSuccessStatus: 200,
+};
 
 app.use(jsonParser());
 app.use(cors());
-
-const port = +(process.env.SERVICE_PORT || 3000);
-const host = process.env.SERVICE_HOST || 'localhost';
 
 const apiRouter = Router();
 

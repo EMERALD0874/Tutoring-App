@@ -1,14 +1,23 @@
 import { useState, useEffect } from "react";
 import { FaChevronRight } from "react-icons/fa";
-import { Link } from "react-router-dom";
+import { Link, useLoaderData } from "react-router-dom";
 import styled from "styled-components";
-import { getTutors, isLoggedIn } from "../api";
+import { getSubject, getTutors, isLoggedIn } from "../api";
 
-export default function Tutors() {
-  const [tutors, setTutors] = useState([] as any[]);
+export async function loader({ params }: { params: { id: string } }) {
+  return await getSubject(params.id);
+}
+
+export default function Subject() {
+  const subject: any = useLoaderData();
+
+  const [tutors, setTutors] = useState<any[] | undefined>(undefined);
   useEffect(() => {
     getTutors().then((res) => setTutors(res));
   }, []);
+
+  console.log(tutors);
+  console.log(subject);
 
   return (
     <TutorList>
@@ -17,22 +26,35 @@ export default function Tutors() {
           marginBottom: "2rem",
         }}
       >
-        All Tutors
+        {subject.name} Tutors
       </h1>
-      {tutors
-        .sort(
-          (a: any, b: any) =>
-            a.first_name.localeCompare(b.first_name) ||
-            a.last_name.localeCompare(b.last_name)
+      {typeof tutors !== "undefined" ? (
+        tutors.filter((tutor: any) => tutor.subjects.includes(subject.id))
+          .length ?? 0 > 0 ? (
+          tutors
+            .sort(
+              (a: any, b: any) =>
+                a.first_name.localeCompare(b.first_name) ||
+                a.last_name.localeCompare(b.last_name)
+            )
+            .filter((tutor: any) => tutor.subjects.includes(subject.id))
+            .map((tutor: any) => (
+              <TutorElement
+                id={tutor.id}
+                key={tutor.id}
+                name={`${tutor.first_name} ${tutor.last_name}`}
+                about={tutor.about}
+              />
+            ))
+        ) : (
+          <p>
+            No tutors teaching {subject.name} found. Please contact a site
+            administrator if you believe this is an error.
+          </p>
         )
-        .map((tutor: any) => (
-          <TutorElement
-            id={tutor.id}
-            key={tutor.id}
-            name={`${tutor.first_name} ${tutor.last_name}`}
-            about={tutor.about}
-          />
-        ))}
+      ) : (
+        <div />
+      )}
     </TutorList>
   );
 }

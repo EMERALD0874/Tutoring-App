@@ -10,6 +10,12 @@ import Subjects from "./routes/subjects";
 import Calendar from "./routes/calendar";
 import About from "./routes/about";
 import Help from "./routes/help";
+import Tutor, { loader as tutorLoader } from "./routes/tutor";
+import Login from "./routes/login";
+import Profile from "./routes/profile";
+import Subject, { loader as subjectLoader } from "./routes/subject";
+import Register from "./routes/register";
+import ChangeSubjects from "./routes/change-subjects";
 
 const router = createBrowserRouter([
   {
@@ -21,12 +27,40 @@ const router = createBrowserRouter([
         element: <Tutors />,
       },
       {
+        path: "login",
+        element: <Login />,
+      },
+      {
+        path: "register",
+        element: <Register />,
+      },
+      {
+        path: "profile",
+        element: <Profile />,
+      },
+      {
+        path: "profile/subjects",
+        element: <ChangeSubjects />,
+      },
+      {
         path: "tutors",
         element: <Tutors />,
       },
       {
+        path: "tutors/:id",
+        element: <Tutor />,
+        // @ts-ignore
+        loader: tutorLoader,
+      },
+      {
         path: "subjects",
         element: <Subjects />,
+      },
+      {
+        path: "subjects/:id",
+        element: <Subject />,
+        // @ts-ignore
+        loader: subjectLoader,
       },
       {
         path: "calendar",

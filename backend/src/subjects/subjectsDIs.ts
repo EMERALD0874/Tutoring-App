@@ -5,6 +5,7 @@ import { Subject } from './subjects';
 export const selectSubjects = async (): Promise<Subject[]> => {
     const sql = `
         SELECT
+            id,
             name,
             department
         FROM
@@ -23,6 +24,7 @@ export const selectSubjectById = async (
 ): Promise<Subject | undefined> => {
     const sql = `
         SELECT
+            id,
             name,
             department
         FROM
