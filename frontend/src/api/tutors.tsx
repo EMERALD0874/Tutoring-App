@@ -74,7 +74,6 @@ export async function becomeTutor() {
     if (res.status === 201) {
       return await res.json();
     } else {
-      console.log(await res.json());
       throw new Error("Error becoming tutor");
     }
   });

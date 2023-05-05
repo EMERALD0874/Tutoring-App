@@ -41,7 +41,6 @@ export default function Profile() {
         setError(
           "Error uploading profile picture. Make sure it is a PNG or JPG that is less than 1 MB."
         );
-        console.log("Error uploading profile picture");
       }
     });
   };

@@ -303,8 +303,15 @@ export default function Schedule() {
                       }}
                       onClick={async (e) => {
                         e.preventDefault();
-                        await deleteTutorTime(date.timeid);
-                        navigate(0);
+                        await deleteTutorTime(date.timeid)
+                          .then(() => {
+                            navigate(0);
+                          })
+                          .catch((err) => {
+                            setError(
+                              "Could not delete time. A student may have already created an appointment."
+                            );
+                          });
                       }}
                     >
                       Delete
