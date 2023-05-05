@@ -165,3 +165,27 @@ export const updateSession = async (
 
     return result.rows[0];
 };
+
+export const deleteOldSessions = async (): Promise<number> => {
+    // const sql = `
+    //     DELETE * FROM sessions
+    //     JOIN tutor_times 
+    //         ON sessions.appointment=tutor_times.id 
+    //     WHERE tutor_times.datetime > CURRENT_DATE;
+    // `;
+    const sql = `
+        WITH times AS (SELECT * FROM tutor_times WHERE datetime > current_date)
+        DELETE 
+            * 
+        FROM 
+            sessions 
+        WHERE 
+            appointment IN (SELECT id FROM times);
+    `;
+
+    const result: QueryResult<{}> = await getConnection((conn) => {
+        return conn.query(sql, []);
+    });
+
+    return result.rowCount;
+};

@@ -2,6 +2,21 @@ import { QueryResult } from 'pg';
 import { getConnection, slots } from '../common';
 import { Token, TokenInfo } from './auth';
 
+export const deleteOldTokens = async (): Promise<number> => {
+    const sql = `
+        DELETE FROM 
+            auth_tokens 
+        WHERE 
+            expires < (now() at time zone 'utc');
+    `;
+
+    const result: QueryResult<{}> = await getConnection((conn) => {
+        return conn.query(sql, []);
+    });
+    
+    return result.rowCount;
+};
+
 export const getAuthToken = async (
     token: string
 ): Promise<TokenInfo | undefined> => {

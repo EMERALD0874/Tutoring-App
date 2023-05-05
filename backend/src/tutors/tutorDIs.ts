@@ -225,6 +225,26 @@ export const selectTimesByTutor = async (
     return result.rows;
 };
 
+export const selectAllTutorTimes = async (): Promise<TutorTime[]> => {
+    const sql = `
+        SELECT 
+            tutor_id as tutorId,
+            id as timeId,
+            date_time as datetime,
+            duration_hours as durationHours
+        FROM 
+            tutor_times;
+    `;
+
+    const result: QueryResult<TutorTime> = await getConnection<QueryResult>(
+        (db) => {
+            return db.query(sql, []);
+        }
+    );
+
+    return result.rows;
+};
+
 export const selectTutorTime = async (
     timeId: UUID
 ): Promise<TutorTime | undefined> => {
@@ -322,6 +342,16 @@ export const deleteAllTutorTimes = async (tutorId: UUID): Promise<UUID> => {
         });
 
     return tutorId;
+};
+
+export const deleteOldTutorTimes = async (): Promise<number> => {
+    const sql = `
+        DELETE FROM     
+            tutor_times
+        WHERE 
+            (date_time + interval '1 hour') < (now() at time zone 'utc');
+    `;
+    return 0;
 };
 
 export const updateTutorTime = async (
