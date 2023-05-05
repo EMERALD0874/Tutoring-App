@@ -35,6 +35,7 @@ import {
     selectTutorTime,
     updateTutorTime,
     deleteAllSubjectsForTutor,
+    selectAllTutorTimes,
 } from './tutorDIs';
 import { authenticate } from '../auth/authCommon';
 import { selectUserByID } from '../users/userDIs';
@@ -486,6 +487,30 @@ tutorsRouter
         ) => {
             const timeId = genUuid();
             try {
+                const existingTimes = await selectTimesByTutor(req.params.userId);
+                let duplicate = false;
+                // existingTimes.forEach((time) => {
+                //     console.log(`${time.datetime.toISOString()} == ${req.body.datetime}? ${time.datetime.toISOString() == req.body.datetime.toString()}`);
+                //     if(time.datetime.toISOString() == req.body.datetime.toString()){
+                //         duplicate = true;
+                //         break;
+                //     }
+                // });
+
+                for(let i = 0; i < existingTimes.length; i++) {
+                    if(existingTimes[i].datetime.toISOString() == req.body.datetime.toString()){
+                        duplicate = true;
+                        break;
+                    }
+                }
+
+                if(duplicate) {
+                    res.status(409).json({
+                        error: `Duplicate start time`,
+                    });
+                    return;
+                }
+
                 const result = await insertTutorTime(
                     req.params.userId,
                     timeId,
@@ -500,7 +525,8 @@ tutorsRouter
                 }
 
                 res.status(201).json(result);
-            } catch {
+            } catch (e){
+                console.log(e)
                 res.status(500).json({ error: `Internal Server Error` });
             }
         }

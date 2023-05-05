@@ -167,17 +167,9 @@ export const updateSession = async (
 };
 
 export const deleteOldSessions = async (): Promise<number> => {
-    // const sql = `
-    //     DELETE * FROM sessions
-    //     JOIN tutor_times 
-    //         ON sessions.appointment=tutor_times.id 
-    //     WHERE tutor_times.datetime > CURRENT_DATE;
-    // `;
     const sql = `
-        WITH times AS (SELECT * FROM tutor_times WHERE datetime > current_date)
-        DELETE 
-            * 
-        FROM 
+        WITH times AS (SELECT * FROM tutor_times WHERE (date_time + interval '1 hour') < (now() at time zone 'utc'))
+        DELETE FROM 
             sessions 
         WHERE 
             appointment IN (SELECT id FROM times);

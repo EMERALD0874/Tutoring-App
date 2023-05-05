@@ -8,5 +8,4 @@ export const appointmentJob = {
             const deletedTimes = await deleteOldTutorTimes();
             console.log(`[CRON ${(new Date()).toTimeString()}]: Deleted ${deletedTimes} tutor times and ${deletedSessions} sessions.`)
     }
-
 }

@@ -18,7 +18,7 @@ export async function addTutorTime(date: Date) {
       },
     }
   ).then(async (res) => {
-    if (res.status === 201) {
+    if (res.status === 201 || res.status === 409) {
       return await res.json();
     } else {
       throw new Error("Error creating time");
