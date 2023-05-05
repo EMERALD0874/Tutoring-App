@@ -8,6 +8,7 @@ import {
   setTutorSubjects,
 } from "../api";
 import { useEffect, useState } from "react";
+import { FaSyncAlt } from "react-icons/fa";
 
 export default function ChangeSubjects() {
   const navigate = useNavigate();
@@ -144,29 +145,50 @@ export default function ChangeSubjects() {
             </p>
           </div>
           <div>
-            <button
-              type="submit"
+            <div
               style={{
+                display: "flex",
                 width: "300px",
-                display: "block",
+                justifyContent: "space-between",
+                gap: "1rem",
                 margin: "auto",
                 marginTop: "2rem",
               }}
-              onClick={(e) => {
-                e.preventDefault();
-                if (selectedSubjects !== null) {
-                  setTutorSubjects(selectedSubjects)
-                    .then((res) => {
-                      navigate("/profile");
-                    })
-                    .catch((err) => {
-                      setError(err);
-                    });
-                }
-              }}
             >
-              Submit Changes
-            </button>
+              <button
+                type="submit"
+                style={{
+                  width: "300px",
+                }}
+                onClick={(e) => {
+                  e.preventDefault();
+                  if (selectedSubjects !== null) {
+                    setTutorSubjects(selectedSubjects)
+                      .then((res) => {
+                        navigate("/profile");
+                      })
+                      .catch((err) => {
+                        setError(err);
+                      });
+                  }
+                }}
+              >
+                Submit Changes
+              </button>
+              <button
+                type="submit"
+                style={{
+                  width: "40px",
+                  backgroundColor: "rgb(49, 87, 44)",
+                }}
+                onClick={(e) => {
+                  e.preventDefault();
+                  navigate(0);
+                }}
+              >
+                <FaSyncAlt />
+              </button>
+            </div>
             {error !== "" && (
               <p
                 style={{
