@@ -81,10 +81,10 @@ tutorsRouter
             try {
                 const errors: string[] = [];
 
-                const userExists = selectUserByID(req.body.tutorId) != null;
-                if (userExists) {
+                const tutorExists = await selectTutor(req.body.tutorId);
+                if (tutorExists) {
                     res.status(400).json({
-                        error: `User ${req.body.tutorId} already exists.`,
+                        error: `Tutor ${req.body.tutorId} already exists.`,
                     });
                     return;
                 }
@@ -266,7 +266,7 @@ tutorsRouter
                 return;
             }
 
-            req.body.times.forEach(async (tutorTime) => {
+            req.body.times?.forEach(async (tutorTime) => {
                 try {
                     const timeId = genUuid();
                     await insertTutorTime(
@@ -302,37 +302,40 @@ tutorsRouter
             res.status(200).json(updatedUser);
         }
     )
-    .delete(authenticate, async (req: Request, res: Response, _: NextFunction) => {
-        try {
+    .delete(
+        authenticate,
+        async (req: Request, res: Response, _: NextFunction) => {
             try {
-                await deleteAllTutorTimes(req.params.id);
-            } catch {
-                res.status(500).json({
-                    error: 'Error deleting tutor: Tutor Times Error',
-                });
-                return;
-            }
+                try {
+                    await deleteAllTutorTimes(req.params.id);
+                } catch {
+                    res.status(500).json({
+                        error: 'Error deleting tutor: Tutor Times Error',
+                    });
+                    return;
+                }
 
-            try {
-                await deleteAllSubjectsForTutor(req.params.id);
-            } catch {
-                res.status(500).json({
-                    error: 'Error deleting tutor: Subjects Error',
-                });
-                return;
-            }
+                try {
+                    await deleteAllSubjectsForTutor(req.params.id);
+                } catch {
+                    res.status(500).json({
+                        error: 'Error deleting tutor: Subjects Error',
+                    });
+                    return;
+                }
 
-            const tutorResult = await deleteTutor(req.params.id);
-            if (!tutorResult) {
-                res.status(500).json({ error: 'Error deleting tutor' });
+                const tutorResult = await deleteTutor(req.params.id);
+                if (!tutorResult) {
+                    res.status(500).json({ error: 'Error deleting tutor' });
+                    return;
+                }
+                res.status(200).json({ id: tutorResult });
+            } catch {
+                res.status(500).json({ error: `Internal Server Error` });
                 return;
             }
-            res.status(200).json({ id: tutorResult });
-        } catch {
-            res.status(500).json({ error: `Internal Server Error` });
-            return;
         }
-    });
+    );
 
 // Begin tutor subjects
 tutorsRouter

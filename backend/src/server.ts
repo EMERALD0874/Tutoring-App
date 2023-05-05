@@ -1,5 +1,6 @@
 import express, { Request, Response, Router } from 'express';
 import { tutorsRouter } from './tutors/tutorEndpoints';
+import cors, { CorsOptions } from 'cors';
 import { usersRouter } from './users/userEndpoints';
 import { sessionsRouter } from './sessions/sessionEndpoints';
 import { json as jsonParser } from 'body-parser';
@@ -9,7 +10,14 @@ import { subjectsRouter } from './subjects/subjectsEndpoints';
 import { authRouter } from './auth/authEndpoints';
 import { profilePictureRouter } from './profile-pictures/profile-picturesEndpoint';
 export const app = express();
+
+var corsOptions: CorsOptions = {
+    origin: '*',
+    optionsSuccessStatus: 200,
+};
+
 app.use(jsonParser());
+app.use(cors());
 
 const apiRouter = Router();
 

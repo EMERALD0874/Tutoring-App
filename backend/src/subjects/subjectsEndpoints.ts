@@ -1,8 +1,13 @@
 import { NextFunction, Request, Response, Router } from 'express';
-import { createSubject, deleteSubject, selectSubjects } from './subjectsDIs';
+import {
+    createSubject,
+    deleteSubject,
+    selectSubjects,
+    selectSubjectById,
+} from './subjectsDIs';
 import { TypedRequestBody, TypedResponse, Alert } from '../types';
 import { Subject } from './subjects';
-import { validate as validateUuid } from 'uuid';
+import { validate as validateUuid, v4 as genUuid } from 'uuid';
 import { authenticate } from '../auth/authCommon';
 
 export const subjectsRouter = Router();
@@ -12,10 +17,16 @@ subjectsRouter
     .all(authenticate, (req: Request, res: Response, next: NextFunction) => {
         next();
     })
-    .get(async (req: Request, res: Response, next: NextFunction) => {
-        const subjectRows = await selectSubjects();
-        return res.json(subjectRows);
-    })
+    .get(
+        async (
+            req: Request,
+            res: TypedResponse<Subject[]>,
+            next: NextFunction
+        ) => {
+            const subjectRows = await selectSubjects();
+            return res.json(subjectRows);
+        }
+    )
     .post(
         async (
             req: TypedRequestBody<Subject>,
@@ -23,6 +34,7 @@ subjectsRouter
             next: NextFunction
         ) => {
             const subject: Subject = {
+                id: genUuid(),
                 name: req.body.name,
                 department: req.body.department,
             };
@@ -63,6 +75,23 @@ subjectsRouter
         }
         next();
     }, authenticate)
+    .get(
+        async (
+            req: Request,
+            res: TypedResponse<Subject>,
+            next: NextFunction
+        ) => {
+            const result = await selectSubjectById(req.params.id);
+
+            if (!result) {
+                res.status(404).json({
+                    error: `Subject ${req.params.id} not found`,
+                });
+                return;
+            }
+            res.status(200).json(result);
+        }
+    )
     .delete(
         async (
             req: TypedRequestBody<Subject>,

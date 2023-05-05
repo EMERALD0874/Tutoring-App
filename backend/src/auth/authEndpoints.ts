@@ -37,19 +37,9 @@ authRouter
             }
 
             if (await verifyLogin(req.body.username, req.body.password)) {
-                const token = await getAuthTokenByUserId(user.id);
-                if (!token) {
-                    res.status(201);
-                    res.json({
-                        token: await generateToken(user.id),
-                        userId: user.id,
-                    });
-                    return;
-                }
-
                 res.status(201);
                 res.json({
-                    token: token,
+                    token: await generateToken(user.id),
                     userId: user.id,
                 });
                 return;

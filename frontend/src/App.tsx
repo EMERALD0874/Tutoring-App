@@ -1,4 +1,3 @@
-import React from "react";
 import styled from "styled-components";
 import {
   FaGraduationCap,
@@ -6,29 +5,48 @@ import {
   FaCalendar,
   FaInfoCircle,
   FaQuestionCircle,
-  FaChevronRight,
+  FaSignInAlt,
 } from "react-icons/fa";
 import "./App.css";
+import { Link, Outlet, useLocation } from "react-router-dom";
+import { isLoggedIn } from "./api";
+import { useEffect, useState } from "react";
 
 function App() {
+  const [loggedIn, setLoggedIn] = useState(false);
+  const location = useLocation();
+  useEffect(() => {
+    setLoggedIn(isLoggedIn());
+  }, [location.key]);
+
   return (
     <AppContainer>
       <Navbar>
-        <FaGraduationCap
-          size={30}
+        <Link
+          to="/"
           style={{
-            marginLeft: 20,
-            marginRight: 10,
-          }}
-        />
-        <h1
-          style={{
-            marginRight: 20,
+            display: "flex",
+            alignItems: "center",
+            color: "#fff",
+            textDecoration: "none",
           }}
         >
-          DOCERE
-        </h1>
-        <div
+          <FaGraduationCap
+            size={30}
+            style={{
+              marginLeft: 20,
+              marginRight: 10,
+            }}
+          />
+          <h1
+            style={{
+              marginRight: 20,
+            }}
+          >
+            DOCERE
+          </h1>
+        </Link>
+        {/* <div
           style={{
             width: "100%",
             height: "60%",
@@ -48,21 +66,49 @@ function App() {
           >
             Search subjects...
           </i>
-        </div>
-        <img
-          src="https://i.imgur.com/hBR6fQH.png"
-          alt="profile"
+        </div> */}
+        <Link
+          to={loggedIn ? "/profile" : "/login"}
           style={{
             width: 50,
             height: 50,
             borderRadius: 9999,
+            marginLeft: "auto",
             marginRight: 20,
+            backgroundColor: "#31572c",
+            display: "flex",
+            overflow: "hidden",
+            color: "#fff",
           }}
-        />
+        >
+          {loggedIn ? (
+            <img
+              src={`${
+                process.env.REACT_APP_API_URL
+              }/api/profile-pictures/${localStorage.getItem("userId")}`}
+              onError={(e) => {
+                (e.target as HTMLImageElement).src =
+                  "https://i.imgur.com/AIkx1b2.png";
+              }}
+              alt="profile"
+              style={{
+                width: "100%",
+                height: "100%",
+              }}
+            />
+          ) : (
+            <FaSignInAlt
+              style={{
+                margin: "auto",
+              }}
+              size={24}
+            />
+          )}
+        </Link>
       </Navbar>
       <ContentContainer>
         <Sidebar>
-          <SidebarItem>
+          <SidebarItem to={loggedIn ? "/subjects" : "/login"}>
             <FaBook size={30} />
             <span
               style={{
@@ -72,7 +118,7 @@ function App() {
               Subjects
             </span>
           </SidebarItem>
-          <SidebarItem>
+          <SidebarItem to={loggedIn ? "/calendar" : "/login"}>
             <FaCalendar size={30} />
             <span
               style={{
@@ -82,7 +128,7 @@ function App() {
               Calendar
             </span>
           </SidebarItem>
-          <SidebarItem>
+          <SidebarItem to="/about">
             <FaInfoCircle size={30} />
             <span
               style={{
@@ -92,7 +138,7 @@ function App() {
               About
             </span>
           </SidebarItem>
-          <SidebarItem>
+          <SidebarItem to="/help">
             <FaQuestionCircle size={30} />
             <span
               style={{
@@ -104,167 +150,7 @@ function App() {
           </SidebarItem>
         </Sidebar>
         <Content>
-          <TutorList>
-            <h1
-              style={{
-                marginBottom: "2rem",
-              }}
-            >
-              Computer Science — C# Tutors
-            </h1>
-            <TutorContainer>
-              <img
-                src="https://i.imgur.com/hBR6fQH.png"
-                alt="profile"
-                style={{
-                  width: 100,
-                  height: 100,
-                  borderRadius: 9999,
-                }}
-              />
-              <div
-                style={{
-                  marginLeft: "2rem",
-                }}
-              >
-                <h2>Hudson Samuels</h2>
-                <h3
-                  style={{
-                    fontWeight: "normal",
-                  }}
-                >
-                  Undergraduate CS student at UT Dallas
-                </h3>
-                <h4
-                  style={{
-                    fontWeight: "normal",
-                  }}
-                >
-                  AVAILABLE AT 9 PM
-                </h4>
-              </div>
-              <FaChevronRight
-                style={{
-                  marginLeft: "auto",
-                }}
-                size={24}
-              />
-            </TutorContainer>
-            <TutorContainer>
-              <img
-                src="https://i.imgur.com/hBR6fQH.png"
-                alt="profile"
-                style={{
-                  width: 100,
-                  height: 100,
-                  borderRadius: 9999,
-                }}
-              />
-              <div
-                style={{
-                  marginLeft: "2rem",
-                }}
-              >
-                <h2>Hudson Samuels II</h2>
-                <h3
-                  style={{
-                    fontWeight: "normal",
-                  }}
-                >
-                  Graduate SE student at UT Dallas
-                </h3>
-                <h4
-                  style={{
-                    fontWeight: "normal",
-                  }}
-                >
-                  AVAILABLE ON WEDNESDAY
-                </h4>
-              </div>
-              <FaChevronRight
-                style={{
-                  marginLeft: "auto",
-                }}
-                size={24}
-              />
-            </TutorContainer>
-            <TutorContainer>
-              <img
-                src="https://i.imgur.com/hBR6fQH.png"
-                alt="profile"
-                style={{
-                  width: 100,
-                  height: 100,
-                  borderRadius: 9999,
-                }}
-              />
-              <div
-                style={{
-                  marginLeft: "2rem",
-                }}
-              >
-                <h2>Hudson Samuels Jr.</h2>
-                <h3
-                  style={{
-                    fontWeight: "normal",
-                  }}
-                >
-                  Student at Allen High School
-                </h3>
-                <h4
-                  style={{
-                    fontWeight: "normal",
-                  }}
-                >
-                  AVAILABLE NEXT THURSDAY
-                </h4>
-              </div>
-              <FaChevronRight
-                style={{
-                  marginLeft: "auto",
-                }}
-                size={24}
-              />
-            </TutorContainer>
-            <TutorContainer>
-              <img
-                src="https://i.imgur.com/hBR6fQH.png"
-                alt="profile"
-                style={{
-                  width: 100,
-                  height: 100,
-                  borderRadius: 9999,
-                }}
-              />
-              <div
-                style={{
-                  marginLeft: "2rem",
-                }}
-              >
-                <h2>Hudson Samuels Sr.</h2>
-                <h3
-                  style={{
-                    fontWeight: "normal",
-                  }}
-                >
-                  Supermegaultragraduate ATEC student at UT Dallas
-                </h3>
-                <h4
-                  style={{
-                    fontWeight: "normal",
-                  }}
-                >
-                  AVAILABLE STARTING 6/12
-                </h4>
-              </div>
-              <FaChevronRight
-                style={{
-                  marginLeft: "auto",
-                }}
-                size={24}
-              />
-            </TutorContainer>
-          </TutorList>
+          <Outlet />
           <Footer>©️ Team Docere, 2023</Footer>
         </Content>
       </ContentContainer>
@@ -292,7 +178,7 @@ const Navbar = styled.div`
 
 const ContentContainer = styled.div`
   width: 100vw;
-  height: 100%;
+  height: calc(100vh - 70px);
   display: flex;
   background-color: #aaa;
 `;
@@ -305,13 +191,16 @@ const Sidebar = styled.div`
   flex-direction: column;
 `;
 
-const SidebarItem = styled.div`
+const SidebarItem = styled(Link)`
   width: 100%;
   height: 100px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+
+  color: #fff;
+  text-decoration: none;
 `;
 
 const Content = styled.div`
@@ -337,27 +226,11 @@ const Content = styled.div`
   }
 `;
 
-const TutorList = styled.div`
-  padding: 4rem;
-  width: 100%;
-  min-height: 100%;
-`;
-
-const TutorContainer = styled.div`
-  width: 100%;
-  padding: 1rem;
-  background-color: #fff;
-  border-radius: 10px;
-  margin-bottom: 2rem;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-`;
-
 const Footer = styled.div`
   width: 100%;
   padding: 1rem;
   background-color: #121212;
   text-align: center;
   color: #aaa;
+  box-shadow: 0 50vh 0 50vh #121212;
 `;
