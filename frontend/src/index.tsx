@@ -16,6 +16,7 @@ import Profile from "./routes/profile";
 import Subject, { loader as subjectLoader } from "./routes/subject";
 import Register from "./routes/register";
 import ChangeSubjects from "./routes/change-subjects";
+import Schedule from "./routes/schedule";
 
 const router = createBrowserRouter([
   {
@@ -41,6 +42,10 @@ const router = createBrowserRouter([
       {
         path: "profile/subjects",
         element: <ChangeSubjects />,
+      },
+      {
+        path: "profile/schedule",
+        element: <Schedule />,
       },
       {
         path: "tutors",

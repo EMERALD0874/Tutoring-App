@@ -165,8 +165,7 @@ export default function Profile() {
                   }}
                   onClick={(e) => {
                     e.preventDefault();
-                    logout();
-                    navigate("/");
+                    navigate("/profile/schedule");
                   }}
                 >
                   Modify Tutoring Schedule
